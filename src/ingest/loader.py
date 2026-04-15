@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from ..config.loader import AppConfig
 from .models import SourceDocument
 from .parse import extract_headings, extract_title, normalize_doc_id

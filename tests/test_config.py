@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from snow_sports_rag.config import load_config
 
 

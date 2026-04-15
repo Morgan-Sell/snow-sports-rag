@@ -15,6 +15,7 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "chunk_size": 512,
         "chunk_overlap": 64,
         "min_section_chars": 0,
+        "recursive_separators": ["\n\n", "\n", " ", ""],
     },
     "embedding": {"model_name": "sentence-transformers/all-MiniLM-L6-v2"},
     "retrieval": {"top_k": 8, "l1_shortlist_m": 10},

@@ -18,7 +18,12 @@ build-backend = "setuptools.build_meta"
 # Code on disk is `src/cli.py`, `src/config/`, …; imports stay `snow_sports_rag.*`.
 [tool.setuptools]
 package-dir = {"snow_sports_rag" = "src"}
-packages = ["snow_sports_rag", "snow_sports_rag.config", "snow_sports_rag.ingest"]
+packages = [
+    "snow_sports_rag",
+    "snow_sports_rag.chunking",
+    "snow_sports_rag.config",
+    "snow_sports_rag.ingest",
+]
 
 [dependency-groups]
 dev = [

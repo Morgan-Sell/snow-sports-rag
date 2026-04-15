@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-
 from snow_sports_rag.config import load_config
 from snow_sports_rag.ingest import KnowledgeBaseLoader
 
