@@ -1,0 +1,37 @@
+[project]
+name = "snow-sports-rag"
+version = "0.1.0"
+description = "RAG over synthetic snow-sports knowledge base"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+snow-sports-rag = "snow_sports_rag.cli:main"
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# Code on disk is `src/cli.py`, `src/config/`, …; imports stay `snow_sports_rag.*`.
+[tool.setuptools]
+package-dir = {"snow_sports_rag" = "src"}
+packages = ["snow_sports_rag", "snow_sports_rag.config", "snow_sports_rag.ingest"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+src = ["src", "app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

@@ -1,0 +1,28 @@
+# Paths are resolved relative to the process current working directory unless absolute.
+knowledge_base_path: knowledge-base
+
+chunking:
+  strategy: markdown_header
+  chunk_size: 512
+  chunk_overlap: 64
+  min_section_chars: 0
+
+embedding:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+
+retrieval:
+  top_k: 8
+  l1_shortlist_m: 10
+
+rerank:
+  enabled: true
+  model_name: cross-encoder/ms-marco-MiniLM-L-6-v2
+  top_n_pre_rerank: 48
+
+llm:
+  provider: openai_compatible
+  model: gpt-4o-mini
+  temperature: 0.1
+
+logging:
+  level: INFO
