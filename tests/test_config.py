@@ -19,7 +19,9 @@ def test_load_config_merges_defaults(tmp_path: Path) -> None:
 
     assert cfg.knowledge_base_path == kb.resolve()
     assert cfg.chunking["strategy"] == "markdown_header"
+    assert cfg.embedding["backend"] == "sentence_transformers"
     assert "model_name" in cfg.embedding
+    assert cfg.embedding["normalize"] is True
 
 
 def test_env_overrides_knowledge_base_path(

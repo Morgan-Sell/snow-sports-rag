@@ -17,7 +17,11 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "min_section_chars": 0,
         "recursive_separators": ["\n\n", "\n", " ", ""],
     },
-    "embedding": {"model_name": "sentence-transformers/all-MiniLM-L6-v2"},
+    "embedding": {
+        "backend": "sentence_transformers",
+        "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+        "normalize": True,
+    },
     "retrieval": {"top_k": 8, "l1_shortlist_m": 10},
     "rerank": {
         "enabled": True,

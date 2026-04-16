@@ -9,7 +9,9 @@ chunking:
   recursive_separators: ["\n\n", "\n", " ", ""]
 
 embedding:
+  backend: sentence_transformers
   model_name: sentence-transformers/all-MiniLM-L6-v2
+  normalize: true
 
 retrieval:
   top_k: 8
