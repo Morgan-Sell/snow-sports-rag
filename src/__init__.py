@@ -15,9 +15,11 @@ from .embedding import (
 from .ingest import KnowledgeBaseLoader, SourceDocument
 from .retrieval import (
     BaselineRetriever,
+    HierarchicalRetriever,
     IndexBuilder,
     RetrievalHit,
     chroma_cosine_distance_to_similarity,
+    l1_summary_text,
     validate_embedder_against_manifest,
 )
 from .vectorstore import (
@@ -25,6 +27,7 @@ from .vectorstore import (
     VectorQueryHit,
     VectorQueryResult,
     VectorStore,
+    chroma_l2_l1_stores_from_config,
     chunk_row_id,
     pack_chunk_upsert,
     vector_store_from_config,
@@ -36,10 +39,13 @@ __all__ = [
     "Chunk",
     "ChunkStrategy",
     "ChromaVectorStore",
+    "HierarchicalRetriever",
     "EmbeddingModel",
     "FakeEmbeddingModel",
     "IndexBuilder",
     "KnowledgeBaseLoader",
+    "chroma_l2_l1_stores_from_config",
+    "l1_summary_text",
     "RetrievalHit",
     "SentenceTransformerEmbeddingModel",
     "SourceDocument",

@@ -46,6 +46,38 @@ def test_vector_store_factory_collection_name_too_short(tmp_path: Path) -> None:
         )
 
 
+def test_chroma_query_respects_where_doc_id_in(tmp_path: Path) -> None:
+    store = ChromaVectorStore(tmp_path / "db", "snow_sports_kb")
+    chunks = [
+        Chunk(
+            text="only in a",
+            doc_id="athletes/a.md",
+            entity_type="athletes",
+            section_path="Bio",
+            chunk_index=0,
+        ),
+        Chunk(
+            text="only in b",
+            doc_id="athletes/b.md",
+            entity_type="athletes",
+            section_path="Bio",
+            chunk_index=0,
+        ),
+    ]
+    embed = FakeEmbeddingModel(dimension=8, normalize=True)
+    mat = embed.embed_documents([c.text for c in chunks])
+    ids, docs, metas, emb = pack_chunk_upsert(chunks, mat)
+    store.upsert(ids=ids, embeddings=emb, documents=docs, metadatas=metas)
+    q = embed.embed_query("only in a")
+    out = store.query(
+        query_embedding=q,
+        k=4,
+        where={"doc_id": {"$in": ["athletes/a.md"]}},
+    )
+    assert len(out.hits) == 1
+    assert out.hits[0].metadata["doc_id"] == "athletes/a.md"
+
+
 def test_chroma_upsert_query_roundtrip(tmp_path: Path) -> None:
     store = ChromaVectorStore(tmp_path / "db", "snow_sports_kb")
     chunks = [

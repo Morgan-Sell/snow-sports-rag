@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, Protocol, runtime_checkable
+from typing import Any, Mapping, Protocol, runtime_checkable
 
 import numpy as np
 from numpy.typing import NDArray
@@ -55,6 +55,7 @@ class VectorStore(Protocol):
         *,
         query_embedding: NDArray[np.float64],
         k: int,
+        where: Mapping[str, Any] | None = None,
     ) -> VectorQueryResult:
         """Return up to ``k`` nearest neighbors to ``query_embedding``.
 
@@ -64,6 +65,9 @@ class VectorStore(Protocol):
             Query vector matching the stored embedding width.
         k : int
             Maximum hits to return (clamped to a positive value by the caller).
+        where : mapping or None, optional
+            Backend-specific metadata filter (Chroma ``where``). When
+            ``None``, the whole collection is searched.
 
         Returns
         -------

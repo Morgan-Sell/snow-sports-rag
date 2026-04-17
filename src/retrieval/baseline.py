@@ -4,8 +4,10 @@ from ..chunking import ChunkStrategy
 from ..chunking.models import Chunk
 from ..embedding.model import EmbeddingModel
 from ..ingest.models import SourceDocument
-from ..vectorstore import VectorStore, pack_chunk_upsert
+from ..vectorstore import VectorStore, l1_summary_row_id, pack_chunk_upsert
+from ..vectorstore.chunks import chunk_to_metadata
 from ..vectorstore.models import VectorQueryHit
+from .l1_summary import l1_summary_text
 from .manifest import ManifestReadableStore, validate_embedder_against_manifest
 from .models import RetrievalHit
 from .scoring import chroma_cosine_distance_to_similarity
@@ -105,6 +107,9 @@ class IndexBuilder:
     Calls :meth:`reset` on the store when available (e.g. Chroma), then
     upserts all chunks and writes the embedding manifest when supported.
 
+    When ``l1_store`` is set, also resets and rebuilds one L1 summary embedding
+    per document (Phase 2.1) in that collection.
+
     Parameters
     ----------
     chunk_strategy : ChunkStrategy
@@ -112,7 +117,10 @@ class IndexBuilder:
     embedder : EmbeddingModel
         Bi-encoder for passages.
     store : VectorStore
-        Target index (typically Chroma).
+        Target L2 chunk index (typically Chroma).
+    l1_store : VectorStore or None, optional
+        Optional second collection for document-level summaries. When
+        ``None``, only L2 chunks are indexed (Phase 1.4 behavior).
     """
 
     def __init__(
@@ -120,10 +128,13 @@ class IndexBuilder:
         chunk_strategy: ChunkStrategy,
         embedder: EmbeddingModel,
         store: VectorStore,
+        *,
+        l1_store: VectorStore | None = None,
     ) -> None:
         self._chunk_strategy = chunk_strategy
         self._embedder = embedder
         self._store = store
+        self._l1_store = l1_store
 
     def build(self, documents: list[SourceDocument]) -> int:
         """Rebuild the index from ``documents``.
@@ -136,11 +147,37 @@ class IndexBuilder:
         Returns
         -------
         int
-            Number of chunks upserted.
+            Number of L2 chunks upserted (L1 rows are not included in this count).
         """
         reset = getattr(self._store, "reset", None)
         if callable(reset):
             reset()
+        if self._l1_store is not None:
+            reset_l1 = getattr(self._l1_store, "reset", None)
+            if callable(reset_l1):
+                reset_l1()
+
+        if self._l1_store is not None and documents:
+            l1_chunks = [
+                Chunk(
+                    text=l1_summary_text(doc),
+                    doc_id=doc.doc_id,
+                    entity_type=doc.entity_type,
+                    section_path="__l1_summary__",
+                    chunk_index=-1,
+                )
+                for doc in documents
+            ]
+            t1 = [c.text for c in l1_chunks]
+            e1 = self._embedder.embed_documents(t1)
+            ids1 = [l1_summary_row_id(c.doc_id) for c in l1_chunks]
+            metas1 = [chunk_to_metadata(c) for c in l1_chunks]
+            self._l1_store.upsert(
+                ids=ids1,
+                embeddings=e1,
+                documents=t1,
+                metadatas=metas1,
+            )
 
         chunks: list[Chunk] = []
         for doc in documents:

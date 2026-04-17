@@ -26,8 +26,15 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "backend": "chroma",
         "persist_directory": ".rag_index/chroma",
         "collection_name": "snow_sports_kb",
+        "l1_collection_name": None,
     },
-    "retrieval": {"top_k": 8, "l1_shortlist_m": 10},
+    "retrieval": {
+        "top_k": 8,
+        "mode": "baseline",
+        "l1_shortlist_m": 5,
+        "max_chunks_per_doc": 2,
+        "hierarchical_global_fallback": True,
+    },
     "rerank": {
         "enabled": True,
         "model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",

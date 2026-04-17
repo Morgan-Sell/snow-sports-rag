@@ -160,6 +160,7 @@ class ChromaVectorStore:
         *,
         query_embedding: NDArray[np.float64],
         k: int,
+        where: Mapping[str, Any] | None = None,
     ) -> VectorQueryResult:
         """Query nearest neighbors by embedding.
 
@@ -170,6 +171,8 @@ class ChromaVectorStore:
         k : int
             Requested hit count; internally at least ``1`` for the Chroma call,
             but an empty collection yields no hits.
+        where : mapping or None, optional
+            Chroma ``where`` metadata filter (e.g. ``doc_id`` with ``$in``).
 
         Returns
         -------
@@ -179,11 +182,14 @@ class ChromaVectorStore:
         k_eff = max(1, int(k))
         vec = np.asarray(query_embedding, dtype=np.float64).reshape(-1)
         q = vec.tolist()
-        raw = self._collection.query(
-            query_embeddings=[q],
-            n_results=k_eff,
-            include=["documents", "metadatas", "distances"],
-        )
+        query_kwargs: dict[str, Any] = {
+            "query_embeddings": [q],
+            "n_results": k_eff,
+            "include": ["documents", "metadatas", "distances"],
+        }
+        if where is not None:
+            query_kwargs["where"] = dict(where)
+        raw = self._collection.query(**query_kwargs)
         ids_batch = raw.get("ids") or [[]]
         docs_batch = raw.get("documents") or [[]]
         meta_batch = raw.get("metadatas") or [[]]

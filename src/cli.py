@@ -8,8 +8,8 @@ from .chunking import chunk_strategy_from_config
 from .config import load_config
 from .embedding import embedding_model_from_config
 from .ingest import KnowledgeBaseLoader
-from .retrieval import BaselineRetriever, IndexBuilder
-from .vectorstore import vector_store_from_config
+from .retrieval import BaselineRetriever, HierarchicalRetriever, IndexBuilder
+from .vectorstore import chroma_l2_l1_stores_from_config, vector_store_from_config
 
 
 def _cmd_ingest(argv: list[str]) -> None:
@@ -74,10 +74,10 @@ def _cmd_index(argv: list[str]) -> None:
     docs = loader.load_all()
     strategy = chunk_strategy_from_config(cfg.chunking)
     embedder = embedding_model_from_config(cfg.embedding)
-    store = vector_store_from_config(cfg.vector_store)
-    builder = IndexBuilder(strategy, embedder, store)
+    l2_store, l1_store = chroma_l2_l1_stores_from_config(cfg.vector_store)
+    builder = IndexBuilder(strategy, embedder, l2_store, l1_store=l1_store)
     n = builder.build(docs)
-    print(f"Indexed {n} chunks from {len(docs)} documents")
+    print(f"Indexed {n} L2 chunks and {len(docs)} L1 summaries from {len(docs)} documents")
 
 
 def _cmd_query(argv: list[str]) -> None:
@@ -105,6 +105,11 @@ def _cmd_query(argv: list[str]) -> None:
         default=None,
         help="Override retrieval.top_k from config",
     )
+    parser.add_argument(
+        "--hierarchical",
+        action="store_true",
+        help="Use Phase 2.1 hierarchical retrieval (L1 shortlist → L2)",
+    )
     args = parser.parse_args(argv)
     base = args.base_dir.resolve() if args.base_dir else Path.cwd()
     cfg_path = args.config
@@ -114,9 +119,22 @@ def _cmd_query(argv: list[str]) -> None:
         cfg_path = (base / cfg_path).resolve()
     cfg = load_config(cfg_path, base_dir=base)
     embedder = embedding_model_from_config(cfg.embedding)
-    store = vector_store_from_config(cfg.vector_store)
     top_k = args.top_k if args.top_k is not None else int(cfg.retrieval["top_k"])
-    retriever = BaselineRetriever(embedder, store, top_k=top_k)
+    hierarchical = args.hierarchical or str(cfg.retrieval.get("mode", "")).lower() == "hierarchical"
+    if hierarchical:
+        l2_store, l1_store = chroma_l2_l1_stores_from_config(cfg.vector_store)
+        retriever = HierarchicalRetriever(
+            embedder,
+            l2_store,
+            l1_store,
+            top_k=top_k,
+            l1_top_m=int(cfg.retrieval.get("l1_shortlist_m", 5)),
+            max_chunks_per_doc=int(cfg.retrieval.get("max_chunks_per_doc", 2)),
+            global_fallback=bool(cfg.retrieval.get("hierarchical_global_fallback", True)),
+        )
+    else:
+        store = vector_store_from_config(cfg.vector_store)
+        retriever = BaselineRetriever(embedder, store, top_k=top_k)
     hits = retriever.retrieve(args.query_text)
     for i, h in enumerate(hits, start=1):
         print(

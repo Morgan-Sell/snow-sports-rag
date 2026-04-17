@@ -3,11 +3,27 @@ from __future__ import annotations
 from ..chunking.models import Chunk
 from .protocol import FloatMatrix
 
-__all__ = ["chunk_row_id", "chunk_to_metadata", "pack_chunk_upsert"]
+__all__ = ["chunk_row_id", "chunk_to_metadata", "l1_summary_row_id", "pack_chunk_upsert"]
 
 __doc__ = """
 Build upsert payloads from :class:`~snow_sports_rag.chunking.models.Chunk` rows.
 """
+
+
+def l1_summary_row_id(doc_id: str) -> str:
+    """Stable vector id for the Phase 2.1 document-summary (L1) row.
+
+    Parameters
+    ----------
+    doc_id : str
+        Source document id (POSIX path under the KB root).
+
+    Returns
+    -------
+    str
+        Distinct from :func:`chunk_row_id` for ``chunk_index >= 0``.
+    """
+    return f"{doc_id}::__l1_summary__"
 
 
 def chunk_row_id(chunk: Chunk) -> str:
