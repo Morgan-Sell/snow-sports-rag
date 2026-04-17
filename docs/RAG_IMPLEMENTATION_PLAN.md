@@ -104,7 +104,7 @@ classDiagram
 
 ## Phase 1 — Chunking R&D, encoders, vector index, baseline retrieval
 
-**Goal.** Chunks → **swappable bi-encoder** → **vector index** → **single-stage dense retrieval** (no hierarchical gating, rerank, or expansion yet).
+**Goal.** Chunks → **swappable bi-encoder** → **vector index** → **single-stage dense retrieval** (no hierarchical gating, rerank, or expansion yet). The Phase 1 baseline is **dense retrieval only**: no BM25, hybrid fusion, or sparse retrieval in §1.4.
 
 ### 1.1 Chunking R&D
 
@@ -116,23 +116,41 @@ classDiagram
 - **Recursive-character:** Baseline splitter over text.
 - **Fixed-size:** Sliding window over full document.
 
+**Chunk sizing.** Maximum chunk length and overlap are configured in **characters** via `chunking.chunk_size` and `chunking.chunk_overlap` (plus strategy-specific keys such as `min_section_chars` or `recursive_separators` where applicable). Defaults in `configs/default.yaml` (e.g. 512 / 64) are illustrative; sweeps and experiments vary these values.
+
 Parameters in config for Phase 4 sweeps.
 
 ### 1.2 Encoder R&D
 
 **Interface.** `EmbeddingModel.embed_documents`, `embed_query`; normalize for cosine in one place. At least two concrete models (e.g. MiniLM vs MPNet). Persist `model_name` and `dimension` in index metadata.
 
+**Index/query parity.** **Indexing and querying MUST use the same** `EmbeddingModel` / hub id as recorded with the index (`embedding_manifest.json` and related Phase 1.2 metadata). A mismatched model or dimension invalidates retrieval; validate at query time (or fail fast) when loading the index for search.
+
 ### 1.3 Vector store
 
 Wrap Chroma, LanceDB, or FAISS+metadata behind `VectorStore`. Persist under `./data/` or `./.rag_index/` (gitignored).
 
+**Phase 1 implementation.** The concrete backend for Phase 1 is **Chroma** (persistent client under `.rag_index/chroma` or config equivalent).
+
+**Full rebuild.** Each index build run **recreates** the collection (or **reset** + full **upsert**) so the on-disk index always reflects the latest corpus, chunking, and embedder. **No incremental merge** in Phase 1.4.
+
 ### 1.4 Baseline retrieval
 
-Embed query → top-`k` by similarity → ranked `RetrievalHit` list.
+**Dense, single-stage flow.** Embed the user query with the same bi-encoder as §1.2, run **dense** vector search (no sparse/hybrid), return a ranked list of hits.
+
+**Policy (baseline).**
+
+- **Same embedder:** `IndexBuilder` / embed path and `BaselineRetriever.embed_query` use the **same** model as §1.2 and the stored manifest.
+- **Chunking:** Indexed passages are exactly what §1.1 **`ChunkStrategy`** produces under the active **`chunking`** config (character-based windows and overlap).
+- **Similarity from Chroma:** The store uses cosine space with L2-normalized embeddings. Treat Chroma’s returned **distance** as \(d\); use **`similarity = 1.0 - d`** for ranking, `RetrievalHit` fields, and primary logging. Optional debug logs may still record raw `distance`.
+- **Document duplication:** **Allow** multiple top-`k` hits from the **same** `doc_id` (no document-level deduplication in Phase 1.4).
+- **Rebuild:** Each build is a **full index rebuild** (see §1.3); query assumes an index built with the current policy.
+
+**`RetrievalHit` (conceptual).** Include passage text, `doc_id`, `section_path`, **`similarity`** (and optionally `distance` for debugging).
 
 **Tests.** Unit: chunking fixtures. Integration: `tmp_path` + **fake embedder** (deterministic vectors).
 
-**Exit criteria.** Script: ingest → chunk → embed → index → query → top-5 with `doc_id` and `section_path`.
+**Exit criteria.** Script: ingest → chunk → embed → index → query → top-5 with `doc_id`, `section_path`, and **similarity** (per the \(1.0 - d\) convention above).
 
 ### Phase 1 — UML (conceptual)
 
@@ -190,6 +208,8 @@ classDiagram
 - **L1:** One summary embedding per doc (title + key overview section by heuristic).
 - **L2:** Section chunks from Phase 1.
 - **Flow:** L1 top-`M` `doc_id`s → filtered L2 search → optional global L2 fallback → deduped context for rerank/generation.
+
+**Note.** Phase 1.4 **baseline** retrieval intentionally **does not** deduplicate by `doc_id` in top-`k`. Phase 2+ may dedupe or diversify context before rerank/generation; that is separate from the Phase 1 dense baseline.
 
 ### 2.2 Query expansion
 
