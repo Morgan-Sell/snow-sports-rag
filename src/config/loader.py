@@ -22,6 +22,11 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "model_name": "sentence-transformers/all-MiniLM-L6-v2",
         "normalize": True,
     },
+    "vector_store": {
+        "backend": "chroma",
+        "persist_directory": ".rag_index/chroma",
+        "collection_name": "snow_sports_kb",
+    },
     "retrieval": {"top_k": 8, "l1_shortlist_m": 10},
     "rerank": {
         "enabled": True,
@@ -49,6 +54,8 @@ class AppConfig:
         Chunking-related options for later RAG phases.
     embedding : Mapping[str, Any]
         Bi-encoder / embedding model options.
+    vector_store : Mapping[str, Any]
+        Vector index backend (Chroma path, collection name).
     retrieval : Mapping[str, Any]
         Vector search and hierarchical retrieval parameters.
     rerank : Mapping[str, Any]
@@ -62,6 +69,7 @@ class AppConfig:
     knowledge_base_path: Path
     chunking: Mapping[str, Any]
     embedding: Mapping[str, Any]
+    vector_store: Mapping[str, Any]
     retrieval: Mapping[str, Any]
     rerank: Mapping[str, Any]
     llm: Mapping[str, Any]
@@ -155,10 +163,22 @@ def load_config(
     if not kb_path.is_absolute():
         kb_path = (root / kb_path).resolve()
 
+    vs = merged.get("vector_store")
+    if isinstance(vs, dict):
+        pd_raw = vs.get("persist_directory")
+        if pd_raw is not None:
+            pd_path = Path(pd_raw) if not isinstance(pd_raw, Path) else pd_raw
+            if not pd_path.is_absolute():
+                pd_path = (root / pd_path).resolve()
+            else:
+                pd_path = pd_path.resolve()
+            merged["vector_store"] = {**vs, "persist_directory": pd_path}
+
     return AppConfig(
         knowledge_base_path=kb_path,
         chunking=merged["chunking"],
         embedding=merged["embedding"],
+        vector_store=merged["vector_store"],
         retrieval=merged["retrieval"],
         rerank=merged["rerank"],
         llm=merged["llm"],

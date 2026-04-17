@@ -13,17 +13,33 @@ from .embedding import (
     embedding_model_from_config,
 )
 from .ingest import KnowledgeBaseLoader, SourceDocument
+from .vectorstore import (
+    ChromaVectorStore,
+    VectorQueryHit,
+    VectorQueryResult,
+    VectorStore,
+    chunk_row_id,
+    pack_chunk_upsert,
+    vector_store_from_config,
+)
 
 __all__ = [
     "AppConfig",
     "Chunk",
     "ChunkStrategy",
+    "ChromaVectorStore",
     "EmbeddingModel",
     "FakeEmbeddingModel",
     "KnowledgeBaseLoader",
     "SentenceTransformerEmbeddingModel",
     "SourceDocument",
+    "VectorQueryHit",
+    "VectorQueryResult",
+    "VectorStore",
+    "chunk_row_id",
     "chunk_strategy_from_config",
     "embedding_model_from_config",
     "load_config",
+    "pack_chunk_upsert",
+    "vector_store_from_config",
 ]

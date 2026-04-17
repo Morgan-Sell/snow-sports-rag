@@ -1,0 +1,74 @@
+from __future__ import annotations
+
+from typing import Mapping, Protocol, runtime_checkable
+
+import numpy as np
+from numpy.typing import NDArray
+
+from .models import VectorQueryResult
+
+__all__ = ["VectorStore", "FloatMatrix"]
+
+__doc__ = """Abstract vector index for dense retrieval."""
+
+FloatMatrix = NDArray[np.float64]
+
+
+@runtime_checkable
+class VectorStore(Protocol):
+    """Key--value vector index with similarity search.
+
+    Implementations persist data on disk or in memory depending on config.
+    """
+
+    def upsert(
+        self,
+        *,
+        ids: list[str],
+        embeddings: FloatMatrix,
+        documents: list[str],
+        metadatas: list[Mapping[str, str | int | float | bool]],
+    ) -> None:
+        """Insert or replace vectors and sidecar fields.
+
+        Parameters
+        ----------
+        ids : list of str
+            Stable primary keys (unique per chunk).
+        embeddings : ndarray of shape (n, dim)
+            L2-normalized or raw vectors matching the index configuration.
+        documents : list of str
+            Chunk text aligned with ``ids``.
+        metadatas : list of mapping
+            Per-row metadata. Chroma requires at least one key per row; use
+            corpus fields such as ``doc_id`` and ``chunk_index``.
+
+        Raises
+        ------
+        ValueError
+            If list lengths or embedding shape ``n`` are inconsistent.
+        """
+        ...
+
+    def query(
+        self,
+        *,
+        query_embedding: NDArray[np.float64],
+        k: int,
+    ) -> VectorQueryResult:
+        """Return up to ``k`` nearest neighbors to ``query_embedding``.
+
+        Parameters
+        ----------
+        query_embedding : ndarray of shape (dim,)
+            Query vector matching the stored embedding width.
+        k : int
+            Maximum hits to return (clamped to a positive value by the caller).
+
+        Returns
+        -------
+        VectorQueryResult
+            Ranked hits; distance interpretation depends on index space
+            (cosine, L2, inner product).
+        """
+        ...

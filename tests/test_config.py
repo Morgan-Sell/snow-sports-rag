@@ -22,6 +22,9 @@ def test_load_config_merges_defaults(tmp_path: Path) -> None:
     assert cfg.embedding["backend"] == "sentence_transformers"
     assert "model_name" in cfg.embedding
     assert cfg.embedding["normalize"] is True
+    assert cfg.vector_store["backend"] == "chroma"
+    assert cfg.vector_store["collection_name"] == "snow_sports_kb"
+    assert "persist_directory" in cfg.vector_store
 
 
 def test_env_overrides_knowledge_base_path(

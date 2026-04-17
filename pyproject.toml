@@ -5,6 +5,7 @@ description = "RAG over synthetic snow-sports knowledge base"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "chromadb>=1.5.7",
     "numpy>=1.26",
     "pyyaml>=6.0",
     "sentence-transformers>=5.0",
@@ -26,6 +27,7 @@ packages = [
     "snow_sports_rag.config",
     "snow_sports_rag.embedding",
     "snow_sports_rag.ingest",
+    "snow_sports_rag.vectorstore",
 ]
 
 [dependency-groups]

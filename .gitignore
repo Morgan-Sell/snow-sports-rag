@@ -223,3 +223,7 @@ Desktop.ini
 *~
 *.swp
 *.swo
+
+# Local vector index (Chroma / RAG)
+.rag_index/
+data/

@@ -13,6 +13,11 @@ embedding:
   model_name: sentence-transformers/all-MiniLM-L6-v2
   normalize: true
 
+vector_store:
+  backend: chroma
+  persist_directory: .rag_index/chroma
+  collection_name: snow_sports_kb
+
 retrieval:
   top_k: 8
   l1_shortlist_m: 10
