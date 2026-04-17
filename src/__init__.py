@@ -13,6 +13,13 @@ from .embedding import (
     embedding_model_from_config,
 )
 from .ingest import KnowledgeBaseLoader, SourceDocument
+from .retrieval import (
+    BaselineRetriever,
+    IndexBuilder,
+    RetrievalHit,
+    chroma_cosine_distance_to_similarity,
+    validate_embedder_against_manifest,
+)
 from .vectorstore import (
     ChromaVectorStore,
     VectorQueryHit,
@@ -25,21 +32,26 @@ from .vectorstore import (
 
 __all__ = [
     "AppConfig",
+    "BaselineRetriever",
     "Chunk",
     "ChunkStrategy",
     "ChromaVectorStore",
     "EmbeddingModel",
     "FakeEmbeddingModel",
+    "IndexBuilder",
     "KnowledgeBaseLoader",
+    "RetrievalHit",
     "SentenceTransformerEmbeddingModel",
     "SourceDocument",
     "VectorQueryHit",
     "VectorQueryResult",
     "VectorStore",
     "chunk_row_id",
+    "chroma_cosine_distance_to_similarity",
     "chunk_strategy_from_config",
     "embedding_model_from_config",
     "load_config",
     "pack_chunk_upsert",
+    "validate_embedder_against_manifest",
     "vector_store_from_config",
 ]

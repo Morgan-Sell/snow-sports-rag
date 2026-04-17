@@ -27,6 +27,7 @@ packages = [
     "snow_sports_rag.config",
     "snow_sports_rag.embedding",
     "snow_sports_rag.ingest",
+    "snow_sports_rag.retrieval",
     "snow_sports_rag.vectorstore",
 ]
 
