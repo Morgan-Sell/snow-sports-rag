@@ -10,7 +10,10 @@ from snow_sports_rag.retrieval import (
     IndexBuilder,
     l1_summary_text,
 )
-from snow_sports_rag.vectorstore import ChromaVectorStore, chroma_l2_l1_stores_from_config
+from snow_sports_rag.vectorstore import (
+    ChromaVectorStore,
+    chroma_l2_l1_stores_from_config,
+)
 
 
 def test_l1_summary_prefers_overview_heading() -> None:

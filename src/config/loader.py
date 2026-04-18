@@ -44,6 +44,15 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "provider": "openai_compatible",
         "model": "gpt-4o-mini",
         "temperature": 0.1,
+        "base_url": "https://api.openai.com/v1",
+        "api_key_env": "OPENAI_API_KEY",
+        "timeout_s": 60.0,
+    },
+    "query_expansion": {
+        "enabled": False,
+        "num_paraphrases": 3,
+        "fusion": "max_score",
+        "rrf_k": 60,
     },
     "logging": {"level": "INFO"},
 }
@@ -69,6 +78,8 @@ class AppConfig:
         Cross-encoder reranking options.
     llm : Mapping[str, Any]
         LLM provider and generation parameters.
+    query_expansion : Mapping[str, Any]
+        Phase 2.2 multi-query expansion and fusion options.
     logging : Mapping[str, Any]
         Log level and related settings.
     """
@@ -80,6 +91,7 @@ class AppConfig:
     retrieval: Mapping[str, Any]
     rerank: Mapping[str, Any]
     llm: Mapping[str, Any]
+    query_expansion: Mapping[str, Any]
     logging: Mapping[str, Any]
 
 
@@ -189,5 +201,6 @@ def load_config(
         retrieval=merged["retrieval"],
         rerank=merged["rerank"],
         llm=merged["llm"],
+        query_expansion=merged["query_expansion"],
         logging=merged["logging"],
     )

@@ -124,9 +124,10 @@ class HierarchicalRetriever:
         self._top_k = max(1, int(top_k))
         self._l1_top_m = max(1, int(l1_top_m))
         self._max_chunks_per_doc = max(1, int(max_chunks_per_doc))
-        self._l2_prefetch_k = (
-            max(32, self._top_k * 8) if l2_prefetch_k is None else max(1, int(l2_prefetch_k))
-        )
+        if l2_prefetch_k is None:
+            self._l2_prefetch_k = max(32, self._top_k * 8)
+        else:
+            self._l2_prefetch_k = max(1, int(l2_prefetch_k))
         self._global_fallback = bool(global_fallback)
         self._validate_manifest = validate_manifest
 

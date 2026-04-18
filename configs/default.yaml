@@ -35,6 +35,15 @@ llm:
   provider: openai_compatible
   model: gpt-4o-mini
   temperature: 0.1
+  base_url: https://api.openai.com/v1
+  api_key_env: OPENAI_API_KEY
+  timeout_s: 60.0
+
+query_expansion:
+  enabled: false
+  num_paraphrases: 3
+  fusion: max_score
+  rrf_k: 60
 
 logging:
   level: INFO

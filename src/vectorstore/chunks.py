@@ -3,7 +3,12 @@ from __future__ import annotations
 from ..chunking.models import Chunk
 from .protocol import FloatMatrix
 
-__all__ = ["chunk_row_id", "chunk_to_metadata", "l1_summary_row_id", "pack_chunk_upsert"]
+__all__ = [
+    "chunk_row_id",
+    "chunk_to_metadata",
+    "l1_summary_row_id",
+    "pack_chunk_upsert",
+]
 
 __doc__ = """
 Build upsert payloads from :class:`~snow_sports_rag.chunking.models.Chunk` rows.
