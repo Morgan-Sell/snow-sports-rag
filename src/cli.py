@@ -9,6 +9,7 @@ from .config import load_config
 from .embedding import embedding_model_from_config
 from .ingest import KnowledgeBaseLoader
 from .llm import llm_client_from_config
+from .rerank import reranker_from_config
 from .retrieval import (
     BaselineRetriever,
     HierarchicalRetriever,
@@ -125,6 +126,11 @@ def _cmd_query(argv: list[str]) -> None:
             "(see query_expansion in config)"
         ),
     )
+    parser.add_argument(
+        "--no-rerank",
+        action="store_true",
+        help="Disable Phase 2.3 reranking even if rerank.enabled is true",
+    )
     args = parser.parse_args(argv)
     base = args.base_dir.resolve() if args.base_dir else Path.cwd()
     cfg_path = args.config
@@ -134,7 +140,21 @@ def _cmd_query(argv: list[str]) -> None:
         cfg_path = (base / cfg_path).resolve()
     cfg = load_config(cfg_path, base_dir=base)
     embedder = embedding_model_from_config(cfg.embedding)
-    top_k = args.top_k if args.top_k is not None else int(cfg.retrieval["top_k"])
+    display_top_k = (
+        args.top_k if args.top_k is not None else int(cfg.retrieval["top_k"])
+    )
+    rer_cfg = cfg.rerank
+    rerank_on = bool(rer_cfg.get("enabled")) and not args.no_rerank
+    n_in = int(rer_cfg.get("top_n_in", 30))
+    pre = int(rer_cfg.get("top_n_pre_rerank", 48))
+    qe_cfg = cfg.query_expansion
+    use_expand = args.expand_queries or bool(qe_cfg.get("enabled"))
+    retrieve_pool = display_top_k
+    if rerank_on:
+        retrieve_pool = max(retrieve_pool, n_in)
+    if use_expand:
+        retrieve_pool = max(retrieve_pool, pre)
+
     mode = str(cfg.retrieval.get("mode", "")).lower()
     hierarchical = args.hierarchical or mode == "hierarchical"
     if hierarchical:
@@ -143,7 +163,7 @@ def _cmd_query(argv: list[str]) -> None:
             embedder,
             l2_store,
             l1_store,
-            top_k=top_k,
+            top_k=retrieve_pool,
             l1_top_m=int(cfg.retrieval.get("l1_shortlist_m", 5)),
             max_chunks_per_doc=int(cfg.retrieval.get("max_chunks_per_doc", 2)),
             global_fallback=bool(
@@ -152,10 +172,8 @@ def _cmd_query(argv: list[str]) -> None:
         )
     else:
         store = vector_store_from_config(cfg.vector_store)
-        retriever = BaselineRetriever(embedder, store, top_k=top_k)
+        retriever = BaselineRetriever(embedder, store, top_k=retrieve_pool)
 
-    qe_cfg = cfg.query_expansion
-    use_expand = args.expand_queries or bool(qe_cfg.get("enabled"))
     if use_expand:
         llm = llm_client_from_config(cfg.llm)
         retriever = QueryExpander(
@@ -166,10 +184,16 @@ def _cmd_query(argv: list[str]) -> None:
             fusion=str(qe_cfg.get("fusion", "max_score")),
             rrf_k=int(qe_cfg.get("rrf_k", 60)),
             top_n_fused=int(cfg.rerank.get("top_n_pre_rerank", 48)),
-            default_inner_k=top_k,
+            default_inner_k=retrieve_pool,
         )
 
     hits = retriever.retrieve(args.query_text)
+    if rerank_on:
+        k_out = int(rer_cfg.get("top_k_out", 5))
+        reranker = reranker_from_config(cfg.rerank, llm=cfg.llm)
+        hits = reranker.rerank(args.query_text, hits[:n_in], top_k=k_out)
+    else:
+        hits = hits[:display_top_k]
     for i, h in enumerate(hits, start=1):
         print(
             f"{i}\t{h.similarity:.6f}\t{h.doc_id}\t{h.section_path}\t{h.chunk_index}"

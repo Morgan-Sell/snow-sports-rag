@@ -18,6 +18,18 @@ __doc__ = """Phase 1.4 dense baseline: index build and retrieval."""
 
 
 def _vector_hit_to_retrieval(hit: VectorQueryHit) -> RetrievalHit:
+    """Convert ``VectorQueryHit`` into ``RetrievalHit``.
+
+    Parameters
+    ----------
+    hit : VectorQueryHit
+        Raw row from ``VectorStore.query`` (Chroma cosine neighbors).
+
+    Returns
+    -------
+    RetrievalHit
+        Passage text, ids, and ``similarity = 1.0 - distance`` for logging.
+    """
     meta = hit.metadata
     doc_id = str(meta.get("doc_id", ""))
     section_path = str(meta.get("section_path", ""))
@@ -64,12 +76,32 @@ class BaselineRetriever:
         top_k: int = 8,
         validate_manifest: bool = True,
     ) -> None:
+        """Store embedder, vector index, and default retrieval size.
+
+        Parameters
+        ----------
+        embedder : EmbeddingModel
+            Same model used to build ``store``.
+        store : VectorStore
+            L2 chunk index (e.g. Chroma).
+        top_k : int, optional
+            Default ``k`` for :meth:`retrieve` when ``k`` is omitted.
+        validate_manifest : bool, optional
+            If true, check embedding manifest against ``embedder`` before search.
+        """
         self._embedder = embedder
         self._store = store
         self._top_k = int(top_k)
         self._validate_manifest = validate_manifest
 
     def _maybe_validate_manifest(self) -> None:
+        """If enabled, verify ``embedder`` matches ``store`` manifest (no-op otherwise).
+
+        Notes
+        -----
+        Silently skips when ``validate_manifest`` is false or ``store`` does not
+        implement :class:`~snow_sports_rag.retrieval.manifest.ManifestReadableStore`.
+        """
         if not self._validate_manifest:
             return
         if not isinstance(self._store, ManifestReadableStore):
@@ -131,6 +163,19 @@ class IndexBuilder:
         *,
         l1_store: VectorStore | None = None,
     ) -> None:
+        """Wire chunking strategy, embedder, and one or two vector collections.
+
+        Parameters
+        ----------
+        chunk_strategy : ChunkStrategy
+            Produces L2 :class:`~snow_sports_rag.chunking.models.Chunk` rows.
+        embedder : EmbeddingModel
+            Bi-encoder for L1 and L2 text.
+        store : VectorStore
+            L2 index; ``reset`` is called on each :meth:`build` when implemented.
+        l1_store : VectorStore or None, optional
+            Optional second index for document summaries; reset when present.
+        """
         self._chunk_strategy = chunk_strategy
         self._embedder = embedder
         self._store = store

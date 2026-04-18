@@ -27,9 +27,16 @@ retrieval:
   hierarchical_global_fallback: true
 
 rerank:
-  enabled: true
+  enabled: false
+  # cross_encoder (local) | openai (listwise chat) | anthropic (listwise)
+  backend: cross_encoder
   model_name: cross-encoder/ms-marco-MiniLM-L-6-v2
   top_n_pre_rerank: 48
+  top_n_in: 30
+  top_k_out: 5
+  # openai listwise (inherits llm base_url / api_key_env when unset)
+  # openai_model: gpt-4o-mini
+  # anthropic_model: claude-3-5-haiku-20241022
 
 llm:
   provider: openai_compatible

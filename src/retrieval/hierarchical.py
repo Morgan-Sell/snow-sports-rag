@@ -15,6 +15,20 @@ __doc__ = """Phase 2.1 two-stage L1 (doc summary) then L2 (chunk) retrieval."""
 
 
 def _vector_hit_to_retrieval(hit: VectorQueryHit) -> RetrievalHit:
+    """Map a Chroma :class:`~snow_sports_rag.vectorstore.models.VectorQueryHit` row.
+
+    Produces an L2 :class:`~snow_sports_rag.retrieval.models.RetrievalHit` view.
+
+    Parameters
+    ----------
+    hit : VectorQueryHit
+        One row from an L2 vector query.
+
+    Returns
+    -------
+    RetrievalHit
+        Dense-hit view with ``similarity`` derived from Chroma distance.
+    """
     meta = hit.metadata
     doc_id = str(meta.get("doc_id", ""))
     section_path = str(meta.get("section_path", ""))
@@ -38,7 +52,22 @@ def _dedupe_max_per_doc(
     top_k: int,
     max_chunks_per_doc: int,
 ) -> list[RetrievalHit]:
-    """Keep global rank order; cap how many passages per ``doc_id``."""
+    """Walk hits in order; emit at most ``max_chunks_per_doc`` rows per document.
+
+    Parameters
+    ----------
+    hits : list of RetrievalHit
+        Best-first candidate list (e.g. from Chroma).
+    top_k : int
+        Stop after this many output rows.
+    max_chunks_per_doc : int
+        Per-``doc_id`` cap (Phase 2.1 diversification).
+
+    Returns
+    -------
+    list of RetrievalHit
+        Possibly shorter than ``top_k`` if the walk exhausts ``hits`` first.
+    """
     out: list[RetrievalHit] = []
     counts: Counter[str] = Counter()
     for h in hits:
@@ -58,7 +87,24 @@ def _merge_global_fallback(
     top_k: int,
     max_chunks_per_doc: int,
 ) -> list[RetrievalHit]:
-    """Append globally retrieved passages without duplicating ``chunk_id``."""
+    """Fill remaining slots from ``global_hits`` after a filtered L2 pass.
+
+    Parameters
+    ----------
+    primary : list of RetrievalHit
+        Already-selected hits (e.g. from L1-filtered L2 search).
+    global_hits : list of RetrievalHit
+        Unfiltered L2 neighbors, best-first.
+    top_k : int
+        Target total list length.
+    max_chunks_per_doc : int
+        Same cap as :func:`_dedupe_max_per_doc`.
+
+    Returns
+    -------
+    list of RetrievalHit
+        ``primary`` extended in global-hit order without duplicate ``chunk_id``.
+    """
     result = list(primary)
     seen = {h.chunk_id for h in result}
     counts = Counter(h.doc_id for h in result)
@@ -118,6 +164,29 @@ class HierarchicalRetriever:
         global_fallback: bool = True,
         validate_manifest: bool = True,
     ) -> None:
+        """Wire L2/L1 stores, shortlist size, dedupe policy, and prefetch width.
+
+        Parameters
+        ----------
+        embedder : EmbeddingModel
+            Shared bi-encoder for L1 summaries and L2 chunks.
+        l2_store : VectorStore
+            Section-chunk collection.
+        l1_store : VectorStore
+            One summary row per document.
+        top_k : int, optional
+            Default L2 hit budget after deduplication.
+        l1_top_m : int, optional
+            L1 neighbors used to build the ``doc_id`` shortlist.
+        max_chunks_per_doc : int, optional
+            Max L2 chunks per document in the final list.
+        l2_prefetch_k : int or None, optional
+            Chroma ``n_results`` for each L2 query; ``None`` picks a default.
+        global_fallback : bool, optional
+            Whether to query unfiltered L2 when the shortlist path is short.
+        validate_manifest : bool, optional
+            If true, validate ``embedder`` against the L2 manifest when possible.
+        """
         self._embedder = embedder
         self._l2 = l2_store
         self._l1 = l1_store
@@ -132,6 +201,12 @@ class HierarchicalRetriever:
         self._validate_manifest = validate_manifest
 
     def _maybe_validate_manifest(self) -> None:
+        """If enabled, verify ``_embedder`` against the L2 embedding manifest.
+
+        Notes
+        -----
+        No-op when validation is disabled or ``l2_store`` lacks manifest support.
+        """
         if not self._validate_manifest:
             return
         if not isinstance(self._l2, ManifestReadableStore):

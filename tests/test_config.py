@@ -27,6 +27,8 @@ def test_load_config_merges_defaults(tmp_path: Path) -> None:
     assert "persist_directory" in cfg.vector_store
     assert cfg.query_expansion["enabled"] is False
     assert cfg.query_expansion["fusion"] == "max_score"
+    assert cfg.rerank["top_n_in"] == 30
+    assert cfg.rerank["top_k_out"] == 5
 
 
 def test_env_overrides_knowledge_base_path(

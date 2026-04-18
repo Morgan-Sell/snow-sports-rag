@@ -36,9 +36,24 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "hierarchical_global_fallback": True,
     },
     "rerank": {
-        "enabled": True,
+        "enabled": False,
+        "backend": "cross_encoder",
         "model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
         "top_n_pre_rerank": 48,
+        "top_n_in": 30,
+        "top_k_out": 5,
+        "device": None,
+        "openai_model": None,
+        "openai_base_url": None,
+        "openai_api_key": None,
+        "openai_api_key_env": None,
+        "openai_temperature": None,
+        "openai_timeout_s": None,
+        "anthropic_model": "claude-3-5-haiku-20241022",
+        "anthropic_api_key": None,
+        "anthropic_api_key_env": "ANTHROPIC_API_KEY",
+        "anthropic_max_tokens": 1024,
+        "anthropic_timeout_s": 120.0,
     },
     "llm": {
         "provider": "openai_compatible",
@@ -75,7 +90,7 @@ class AppConfig:
     retrieval : Mapping[str, Any]
         Vector search and hierarchical retrieval parameters.
     rerank : Mapping[str, Any]
-        Cross-encoder reranking options.
+        Phase 2.3 reranking (backend, ``top_n_in`` / ``top_k_out``, models).
     llm : Mapping[str, Any]
         LLM provider and generation parameters.
     query_expansion : Mapping[str, Any]

@@ -9,11 +9,12 @@ class KnowledgeBaseLoader:
     """Discover and load all ``*.md`` files under a configured root directory."""
 
     def __init__(self, config: AppConfig) -> None:
-        """
+        """Remember the corpus root from application config.
+
         Parameters
         ----------
         config : AppConfig
-            Configuration; ``knowledge_base_path`` must be the corpus root.
+            Must expose ``knowledge_base_path`` pointing at the Markdown tree.
         """
         self._root = config.knowledge_base_path
 

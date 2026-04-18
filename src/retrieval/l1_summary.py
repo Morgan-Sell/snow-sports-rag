@@ -15,7 +15,18 @@ _OVERVIEW_HEADING = re.compile(
 
 
 def _strip_first_h1_block(lines: list[str]) -> str:
-    """Return body after the first ATX ``#`` line, preserving later lines."""
+    """Return body after the first ATX ``#`` title line.
+
+    Parameters
+    ----------
+    lines : list of str
+        Full document split into lines (typically ``raw_markdown.splitlines()``).
+
+    Returns
+    -------
+    str
+        Remaining Markdown after the H1 block and following blank lines.
+    """
     i = 0
     while i < len(lines) and not lines[i].strip():
         i += 1
@@ -57,7 +68,18 @@ def _parse_h2_sections(body: str) -> list[tuple[str, str]]:
 
 
 def _first_matching_or_first_h2(sections: list[tuple[str, str]]) -> str:
-    """Pick overview-like ``##`` section if present, else the first section body."""
+    """Return overview-style section text, else the first H2 body.
+
+    Parameters
+    ----------
+    sections : list of tuple[str, str]
+        ``(heading, body)`` pairs from :func:`_parse_h2_sections`.
+
+    Returns
+    -------
+    str
+        Excerpt text, possibly empty when ``sections`` is empty.
+    """
     for heading, text in sections:
         if _OVERVIEW_HEADING.match(heading) and text:
             return text
@@ -67,7 +89,20 @@ def _first_matching_or_first_h2(sections: list[tuple[str, str]]) -> str:
 
 
 def _fallback_prose(body: str, max_chars: int) -> str:
-    """Use non-heading lines after H1 when there are no ``##`` sections."""
+    """Collect non-heading prose from ``body`` when no H2 sections exist.
+
+    Parameters
+    ----------
+    body : str
+        Markdown after the document title.
+    max_chars : int
+        Hard cap on returned character length.
+
+    Returns
+    -------
+    str
+        Whitespace-normalized excerpt, truncated to ``max_chars``.
+    """
     lines = body.splitlines()
     buf: list[str] = []
     for line in lines:

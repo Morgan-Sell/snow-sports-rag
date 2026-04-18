@@ -45,6 +45,20 @@ class ChromaVectorStore:
         persist_directory: Path,
         collection_name: str,
     ) -> None:
+        """Open (or create) a persistent Chroma collection under ``persist_directory``.
+
+        Parameters
+        ----------
+        persist_directory : pathlib.Path
+            Root directory for on-disk Chroma state.
+        collection_name : str
+            Collection id (Chroma requires length ≥ 3).
+
+        Raises
+        ------
+        ValueError
+            If ``collection_name`` is too short for Chroma.
+        """
         name = str(collection_name).strip()
         if len(name) < 3:
             msg = "collection_name must be at least 3 characters for Chroma, "
@@ -61,16 +75,33 @@ class ChromaVectorStore:
 
     @property
     def persist_directory(self) -> Path:
-        """Root path passed at construction."""
+        """Directory backing this client's SQLite + HNSW files.
+
+        Returns
+        -------
+        pathlib.Path
+            Same object as the constructor ``persist_directory`` (resolved).
+        """
         return self._persist_directory
 
     @property
     def collection_name(self) -> str:
-        """Chroma collection name."""
+        """Logical Chroma collection id for this client.
+
+        Returns
+        -------
+        str
+            Normalized name passed at construction.
+        """
         return self._collection_name
 
     def reset(self) -> None:
-        """Delete this collection (if it exists) and recreate it empty."""
+        """Drop and recreate the backing collection (full index wipe for rebuilds).
+
+        Notes
+        -----
+        Swallows ``NotFoundError`` when the collection did not exist yet.
+        """
         try:
             self._client.delete_collection(self._collection_name)
         except chromadb.errors.NotFoundError:

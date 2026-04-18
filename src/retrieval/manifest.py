@@ -14,7 +14,14 @@ class ManifestReadableStore(Protocol):
     """Stores that expose :meth:`read_embedding_manifest`."""
 
     def read_embedding_manifest(self) -> dict[str, Any] | None:
-        """Return parsed manifest or ``None`` if missing."""
+        """Load ``embedding_manifest.json`` adjacent to the vector store, if present.
+
+        Returns
+        -------
+        dict or None
+            Parsed JSON with at least ``model_name`` / ``dimension`` keys, or
+            ``None`` when no manifest file exists.
+        """
         ...
 
 

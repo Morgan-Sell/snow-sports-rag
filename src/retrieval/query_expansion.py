@@ -16,6 +16,20 @@ class SupportsRetrieve(Protocol):
     """Anything that can run dense or hierarchical :meth:`retrieve`."""
 
     def retrieve(self, query: str, *, k: int | None = None) -> list[RetrievalHit]:
+        """Return ranked passages for ``query`` (baseline or hierarchical).
+
+        Parameters
+        ----------
+        query : str
+            Natural-language string passed to the bi-encoder.
+        k : int or None, optional
+            Max hits; ``None`` uses the wrapped retriever's default pool size.
+
+        Returns
+        -------
+        list of RetrievalHit
+            Dense or hierarchically filtered hits.
+        """
         ...
 
 
@@ -62,6 +76,29 @@ class QueryExpander:
         top_n_fused: int = 48,
         default_inner_k: int = 8,
     ) -> None:
+        """Attach inner retriever, LLM, fusion mode, and pool sizes.
+
+        Parameters
+        ----------
+        inner : SupportsRetrieve
+            Dense or hierarchical retriever to wrap.
+        llm : LLMClient
+            Supplies paraphrases when ``enabled`` is true.
+        enabled : bool, optional
+            When false, :meth:`retrieve` forwards to ``inner`` only.
+        num_paraphrases : int, optional
+            Upper bound for the wrapped LLM client's ``expand_query`` call.
+        fusion : str, optional
+            ``max_score`` or ``rrf`` (see :mod:`snow_sports_rag.retrieval.fusion`).
+        rrf_k : int, optional
+            Smoothing constant for RRF fusion.
+        per_query_k : int or None, optional
+            Explicit ``k`` for each inner retrieval; ``None`` derives a default.
+        top_n_fused : int, optional
+            Cap on merged multi-query results before final slicing.
+        default_inner_k : int, optional
+            Default final ``k`` and part of the per-query pool heuristic.
+        """
         self._inner = inner
         self._llm = llm
         self._enabled = bool(enabled)
@@ -73,7 +110,20 @@ class QueryExpander:
         self._default_inner_k = max(1, int(default_inner_k))
 
     def retrieve(self, query: str, *, k: int | None = None) -> list[RetrievalHit]:
-        """Expand (optional), multi-query retrieve, fuse, return top-``k``."""
+        """Optionally expand the query, retrieve per variant, fuse, then slice.
+
+        Parameters
+        ----------
+        query : str
+            Original user question.
+        k : int or None, optional
+            Final hit count; defaults to ``default_inner_k`` from construction.
+
+        Returns
+        -------
+        list of RetrievalHit
+            Fused ordering when expansion is enabled; otherwise ``inner.retrieve``.
+        """
         k_eff = self._default_inner_k if k is None else max(1, int(k))
         if not self._enabled:
             return self._inner.retrieve(query, k=k_eff)

@@ -15,10 +15,30 @@ class FakeLLMClient:
     """
 
     def __init__(self, *, prefix: str = "paraphrase:") -> None:
+        """Configure the deterministic paraphrase prefix.
+
+        Parameters
+        ----------
+        prefix : str, optional
+            Literal prefix inserted before each synthetic variant.
+        """
         self._prefix = prefix
 
     def expand_query(self, query: str, *, num_paraphrases: int = 3) -> list[str]:
-        """Build ``num_paraphrases`` strings derived from ``query``."""
+        """Return ``num_paraphrases`` synthetic strings derived from ``query``.
+
+        Parameters
+        ----------
+        query : str
+            Original user text (stripped before use).
+        num_paraphrases : int, optional
+            Number of variants to emit; zero yields an empty list.
+
+        Returns
+        -------
+        list of str
+            Deterministic strings ``{prefix} {query} [i]`` for ``i`` in range.
+        """
         n = max(0, int(num_paraphrases))
         q = query.strip()
         if not q or n == 0:

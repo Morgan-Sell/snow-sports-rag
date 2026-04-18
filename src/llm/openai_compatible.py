@@ -15,7 +15,23 @@ _JSON_ARRAY = re.compile(r"\[[\s\S]*\]")
 
 
 def _extract_json_array(text: str) -> list[Any]:
-    """Parse the first JSON array from model output."""
+    """Parse the first JSON array embedded in free-form model text.
+
+    Parameters
+    ----------
+    text : str
+        Assistant message content that should contain a ``[...]`` JSON array.
+
+    Returns
+    -------
+    list
+        Parsed JSON array (elements may be any JSON types).
+
+    Raises
+    ------
+    ValueError
+        If no array is found or the parsed value is not a list.
+    """
     raw = text.strip()
     m = _JSON_ARRAY.search(raw)
     if not m:
@@ -58,6 +74,23 @@ class OpenAICompatibleLLMClient:
         api_key_env: str = "OPENAI_API_KEY",
         timeout_s: float = 60.0,
     ) -> None:
+        """Record model id, networking, and auth configuration.
+
+        Parameters
+        ----------
+        model : str
+            Chat completions model name.
+        api_key : str or None, optional
+            Bearer token; if ``None``, :meth:`_resolve_api_key` reads ``api_key_env``.
+        base_url : str, optional
+            OpenAI-compatible API root without trailing slash.
+        temperature : float, optional
+            Sampling temperature for expansion calls.
+        api_key_env : str, optional
+            Environment variable holding the API key when ``api_key`` is omitted.
+        timeout_s : float, optional
+            HTTP timeout in seconds for ``urllib`` requests.
+        """
         self._model = model
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
@@ -66,6 +99,18 @@ class OpenAICompatibleLLMClient:
         self._timeout_s = float(timeout_s)
 
     def _resolve_api_key(self) -> str:
+        """Obtain a non-empty bearer token from attributes or the environment.
+
+        Returns
+        -------
+        str
+            API key used in the ``Authorization`` header.
+
+        Raises
+        ------
+        ValueError
+            If no key is configured.
+        """
         if self._api_key is not None and str(self._api_key).strip():
             return str(self._api_key).strip()
         env = os.environ.get(self._api_key_env, "")
@@ -78,7 +123,25 @@ class OpenAICompatibleLLMClient:
         return env.strip()
 
     def expand_query(self, query: str, *, num_paraphrases: int = 3) -> list[str]:
-        """Ask the chat model for JSON-array paraphrases."""
+        """POST chat completions and parse string paraphrases from the reply.
+
+        Parameters
+        ----------
+        query : str
+            Original user query text.
+        num_paraphrases : int, optional
+            Maximum distinct paraphrases to keep from the JSON array.
+
+        Returns
+        -------
+        list of str
+            Stripped unique strings returned by the model (may be shorter than ``n``).
+
+        Raises
+        ------
+        ValueError
+            On HTTP errors, malformed JSON, or unexpected response shapes.
+        """
         n = max(0, int(num_paraphrases))
         if not query.strip() or n == 0:
             return []

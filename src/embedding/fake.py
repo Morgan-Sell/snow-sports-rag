@@ -79,6 +79,22 @@ class FakeEmbeddingModel:
         model_name: str = "fake-deterministic",
         normalize: bool = True,
     ) -> None:
+        """Configure vector width, logical name, and row normalization policy.
+
+        Parameters
+        ----------
+        dimension : int
+            Embedding length; must be positive.
+        model_name : str, optional
+            Recorded in manifests and metadata.
+        normalize : bool, optional
+            If true, L2-normalize rows from :meth:`embed_documents`.
+
+        Raises
+        ------
+        ValueError
+            If ``dimension`` is not positive.
+        """
         if dimension <= 0:
             msg = f"dimension must be positive, got {dimension}"
             raise ValueError(msg)

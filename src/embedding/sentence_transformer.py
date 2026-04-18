@@ -48,6 +48,18 @@ class SentenceTransformerEmbeddingModel:
         device: str | None = None,
         normalize: bool = True,
     ) -> None:
+        """Load ``SentenceTransformer`` weights and record normalization policy.
+
+        Parameters
+        ----------
+        model_name : str
+            Hugging Face hub id (for example ``sentence-transformers/…``).
+        device : str or None, optional
+            Device hint forwarded to ``SentenceTransformer`` (``cuda``, ``cpu``, …).
+        normalize : bool, optional
+            If true, apply :func:`~snow_sports_rag.embedding.model.l2_normalize_rows`
+            after encoding.
+        """
         from sentence_transformers import SentenceTransformer
 
         self._model_name = model_name

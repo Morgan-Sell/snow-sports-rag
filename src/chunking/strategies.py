@@ -229,6 +229,7 @@ def _h2_sections(markdown: str) -> list[tuple[str, str]]:
     sections: list[tuple[str, str]] = []
 
     def flush() -> None:
+        """Push the buffered H2 section onto ``sections`` if it has any content."""
         nonlocal buf
         body = "\n".join(buf).strip()
         if current_heading or body:
@@ -276,6 +277,17 @@ class MarkdownHeaderChunkStrategy:
         chunk_overlap: int = 64,
         min_section_chars: int = 0,
     ) -> None:
+        """Configure per-section windowing thresholds.
+
+        Parameters
+        ----------
+        chunk_size : int, optional
+            Maximum characters per chunk inside an H2 body.
+        chunk_overlap : int, optional
+            Overlap between windows when a section exceeds ``chunk_size``.
+        min_section_chars : int, optional
+            Skip H2 bodies shorter than this many characters (after strip).
+        """
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         self._min_section_chars = min_section_chars
@@ -354,6 +366,17 @@ class RecursiveCharChunkStrategy:
         chunk_overlap: int = 64,
         separators: list[str] | None = None,
     ) -> None:
+        """Configure merge size and the recursive separator hierarchy.
+
+        Parameters
+        ----------
+        chunk_size : int, optional
+            Target maximum characters per merged chunk.
+        chunk_overlap : int, optional
+            Overlap between consecutive merged chunks.
+        separators : list of str or None, optional
+            Separator priority list; defaults mimic LangChain's recursive splitter.
+        """
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         self._separators = separators or ["\n\n", "\n", " ", ""]
@@ -404,6 +427,10 @@ class RecursiveCharChunkStrategy:
         -------
         list of str
             Final chunk strings after recursive splitting and merging.
+
+        Notes
+        -----
+        Mutates no instance fields beyond reading ``_chunk_size`` / ``_chunk_overlap``.
         """
         final_chunks: list[str] = []
         separator = separators[-1]
@@ -477,6 +504,15 @@ class FixedWindowChunkStrategy:
         chunk_size: int = 512,
         chunk_overlap: int = 64,
     ) -> None:
+        """Store sliding-window geometry for full-document chunking.
+
+        Parameters
+        ----------
+        chunk_size : int, optional
+            Window length in characters.
+        chunk_overlap : int, optional
+            Characters shared between consecutive windows.
+        """
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
 
