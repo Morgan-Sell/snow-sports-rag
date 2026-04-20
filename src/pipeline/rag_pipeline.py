@@ -37,8 +37,6 @@ inlines the L1 → L2 flow so it can emit the intermediate stage outputs the
 Debug UI and trace logger need. It reuses the same helper functions as the
 standalone retrievers, so the ranking logic is not duplicated.
 """
-
-
 def _snippet(text: str, max_chars: int = 320) -> str:
     """Return a UI-friendly short excerpt of a passage body.
 
@@ -463,9 +461,12 @@ class RAGPipeline:
         t0 = time.perf_counter()
         answer = None
         if gen_on:
-            generator = answer_generator_from_config(
-                self._cfg.generation, llm=self._cfg.llm
-            )
+            # UI toggle must win over YAML ``generation.enabled``. Otherwise
+            # ``answer_generator_from_config`` always returns FakeAnswerGenerator
+            # when the file has ``enabled: false``, producing echo-only answers.
+            gen_cfg = dict(self._cfg.generation)
+            gen_cfg["enabled"] = True
+            generator = answer_generator_from_config(gen_cfg, llm=self._cfg.llm)
             answer = generator.generate(q, reranked)
         generation_ms = (time.perf_counter() - t0) * 1000.0
 

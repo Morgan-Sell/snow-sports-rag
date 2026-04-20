@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from ..config.coalesce import coalesce_openai_timeout_s
 from .anthropic import AnthropicAnswerGenerator
 from .fake import FakeAnswerGenerator
 from .huggingface import HuggingFaceAnswerGenerator
@@ -108,9 +109,7 @@ def answer_generator_from_config(
             or "OPENAI_API_KEY"
         )
         api_key = _opt_str(generation, "openai_api_key")
-        timeout_s = float(
-            generation.get("openai_timeout_s", llm.get("timeout_s", 120.0))
-        )
+        timeout_s = coalesce_openai_timeout_s(generation, llm)
         return OpenAIAnswerGenerator(
             model=model,
             api_key=api_key,

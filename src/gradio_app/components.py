@@ -11,7 +11,6 @@ __all__ = [
     "EMPTY_INDEX_BANNER_HTML",
     "EMPTY_SOURCES_HTML",
     "EXAMPLE_QUESTIONS",
-    "HERO_HTML",
     "HEADER_HTML",
     "build_card_tooltip",
     "render_debug_panel",
@@ -60,18 +59,6 @@ EXAMPLE_QUESTIONS: tuple[str, ...] = (
     "What resorts have gondolas?",
     "Summarize recent World Cup race results.",
     "How is a slalom course structured?",
-)
-
-
-HERO_HTML = (
-    '<div class="alpine-hero">'
-    '  <div class="alpine-hero-mark" aria-hidden="true">❄</div>'
-    '  <div class="alpine-hero-title">Welcome to Trailhead</div>'
-    '  <div class="alpine-hero-sub">'
-    "    Answers are grounded in retrieved sources. Try one of the example "
-    "    questions below, or type your own."
-    "  </div>"
-    "</div>"
 )
 
 

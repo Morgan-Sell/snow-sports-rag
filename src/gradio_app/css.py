@@ -235,39 +235,16 @@ ALPINE_CSS = """
   color: var(--alpine-slate-2);
 }
 
-/* ------- Empty-state hero ------- */
-.alpine-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 18px 20px;
-  border-radius: 14px;
-  border: 1px solid var(--alpine-ice);
-  background: linear-gradient(180deg, #FFFFFF 0%, #F3F8FB 100%);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  margin-bottom: 10px;
-}
-.alpine-hero-mark {
-  font-size: 20px;
-  color: var(--alpine-glacier);
-  line-height: 1;
-}
-.alpine-hero-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--alpine-slate-2);
-}
-.alpine-hero-sub {
-  font-size: 13px;
-  color: var(--alpine-slate);
-  max-width: 56ch;
-}
-.alpine-hero-row {
+/* ------- Starter question chips (under input) ------- */
+.alpine-starter-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 2px;
+}
+.alpine-starter-row {
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 /* ------- Misc ------- */

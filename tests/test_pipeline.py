@@ -26,6 +26,21 @@ from snow_sports_rag.vectorstore import ChromaVectorStore
 # ---------------------------------------------------------------------------
 
 
+def test_factory_openai_when_merged_enabled_true() -> None:
+    """YAML may disable generation; merged ``enabled: True`` selects real backend."""
+    from snow_sports_rag.generation.factory import answer_generator_from_config
+    from snow_sports_rag.generation.fake import FakeAnswerGenerator
+    from snow_sports_rag.generation.openai import OpenAIAnswerGenerator
+
+    yaml_style = {"enabled": False, "backend": "openai"}
+    fake = answer_generator_from_config(yaml_style, llm={})
+    assert isinstance(fake, FakeAnswerGenerator)
+
+    merged = {**yaml_style, "enabled": True}
+    real = answer_generator_from_config(merged, llm={})
+    assert isinstance(real, OpenAIAnswerGenerator)
+
+
 def test_resolve_preset_case_insensitive_and_fallback() -> None:
     assert resolve_preset("fast").name == "Fast"
     assert resolve_preset("BALANCED").name == "Balanced"

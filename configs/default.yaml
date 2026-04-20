@@ -55,15 +55,16 @@ query_expansion:
 generation:
   # Phase 2.4: grounded answers. When disabled, the CLI prints retrieval rows
   # only and does not call an LLM for synthesis.
-  enabled: false
+  enabled: true
   # openai (chat completions) | anthropic (messages) | huggingface (local) | fake
   backend: openai
-  temperature: 0.1
+  temperature: 0.2
   max_tokens: 1024
   # Per-passage character budget injected into the prompt as [SOURCE n] blocks.
   max_chars_per_hit: 1200
   include_section_path: true
   refusal_message: "I don't know based on the provided knowledge base."
+  # openai_timeout_s: optional; omit or null to inherit llm.timeout_s (see config/coalesce.py)
   # openai (inherits llm.base_url / llm.api_key_env / llm.timeout_s when unset)
   # openai_model: gpt-4o-mini
   # anthropic_model: claude-3-5-sonnet-20241022

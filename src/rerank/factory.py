@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from ..config.coalesce import coalesce_openai_timeout_s
 from .anthropic_listwise import AnthropicListwiseReranker
 from .cross_encoder import CrossEncoderReranker
 from .identity import IdentityReranker
@@ -66,7 +67,7 @@ def reranker_from_config(
             if isinstance(raw_key, str) and raw_key.strip()
             else None
         )
-        timeout = float(rerank.get("openai_timeout_s", llm.get("timeout_s", 120.0)))
+        timeout = coalesce_openai_timeout_s(rerank, llm)
         return OpenAIListwiseReranker(
             model=model,
             api_key=api_key,

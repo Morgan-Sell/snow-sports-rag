@@ -22,7 +22,6 @@ from .components import (
     EMPTY_SOURCES_HTML,
     EXAMPLE_QUESTIONS,
     HEADER_HTML,
-    HERO_HTML,
     render_debug_panel,
     render_evidence_banner,
     render_preset_caption,
@@ -177,13 +176,6 @@ def build_demo(
 
         with gr.Row(equal_height=False):
             with gr.Column(scale=3, min_width=420):
-                with gr.Column(visible=True) as hero_column:
-                    gr.HTML(value=HERO_HTML)
-                    with gr.Row(elem_classes=["alpine-hero-row"]):
-                        example_buttons = [
-                            gr.Button(q, variant="secondary", size="sm")
-                            for q in EXAMPLE_QUESTIONS
-                        ]
                 chatbot = gr.Chatbot(
                     label="Chat",
                     height=460,
@@ -198,6 +190,13 @@ def build_demo(
                         scale=5,
                     )
                     send_btn = gr.Button("Send", variant="primary", scale=1)
+                with gr.Column(visible=True) as starter_column:
+                    starter_classes = ["alpine-starter-chips", "alpine-starter-row"]
+                    with gr.Row(elem_classes=starter_classes):
+                        example_buttons = [
+                            gr.Button(q, variant="secondary", size="sm")
+                            for q in EXAMPLE_QUESTIONS
+                        ]
                 with gr.Row():
                     thumbs_up = gr.Button("👍  Helpful", variant="secondary")
                     thumbs_down = gr.Button("👎  Not helpful", variant="secondary")
@@ -333,7 +332,7 @@ def build_demo(
             last_trace_id,
             last_config_hash,
             evidence_banner,
-            hero_column,
+            starter_column,
         ]
         submit_inputs = [
             msg,
