@@ -23,6 +23,18 @@ from .generation import (
     answer_generator_from_config,
 )
 from .ingest import KnowledgeBaseLoader, SourceDocument
+from .pipeline import (
+    PRESETS,
+    PipelineResult,
+    PipelineTrace,
+    RAGPipeline,
+    RetrievalPreset,
+    SourceCard,
+    StageLatency,
+    TraceLogger,
+    compute_config_hash,
+    resolve_preset,
+)
 from .retrieval import (
     BaselineRetriever,
     HierarchicalRetriever,
@@ -60,8 +72,18 @@ __all__ = [
     "IndexBuilder",
     "KnowledgeBaseLoader",
     "OpenAIAnswerGenerator",
+    "PRESETS",
+    "PipelineResult",
+    "PipelineTrace",
+    "RAGPipeline",
+    "RetrievalPreset",
+    "SourceCard",
     "SourceCitation",
+    "StageLatency",
+    "TraceLogger",
     "answer_generator_from_config",
+    "compute_config_hash",
+    "resolve_preset",
     "chroma_l2_l1_stores_from_config",
     "l1_summary_text",
     "RetrievalHit",

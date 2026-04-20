@@ -227,3 +227,6 @@ Desktop.ini
 # Local vector index (Chroma / RAG)
 .rag_index/
 data/
+
+# Trace logs emitted by the Gradio UI
+.rag_traces/

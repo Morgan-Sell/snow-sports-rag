@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "chromadb>=1.5.7",
+    "gradio>=5.0",
     "numpy>=1.26",
     "python-dotenv>=1.0",
     "pyyaml>=6.0",
@@ -14,6 +15,7 @@ dependencies = [
 
 [project.scripts]
 snow-sports-rag = "snow_sports_rag.cli:main"
+snow-sports-rag-ui = "snow_sports_rag.gradio_app.app:launch"
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
@@ -28,8 +30,10 @@ packages = [
     "snow_sports_rag.config",
     "snow_sports_rag.embedding",
     "snow_sports_rag.generation",
+    "snow_sports_rag.gradio_app",
     "snow_sports_rag.ingest",
     "snow_sports_rag.llm",
+    "snow_sports_rag.pipeline",
     "snow_sports_rag.rerank",
     "snow_sports_rag.retrieval",
     "snow_sports_rag.vectorstore",
