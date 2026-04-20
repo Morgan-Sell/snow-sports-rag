@@ -77,9 +77,7 @@ def reranker_from_config(
         )
 
     if backend == "anthropic":
-        model = str(
-            rerank.get("anthropic_model", "claude-3-5-haiku-20241022")
-        ).strip()
+        model = str(rerank.get("anthropic_model", "claude-3-5-haiku-20241022")).strip()
         api_key_env = str(rerank.get("anthropic_api_key_env", "ANTHROPIC_API_KEY"))
         raw_key = rerank.get("anthropic_api_key")
         api_key = (

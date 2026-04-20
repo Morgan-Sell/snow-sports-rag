@@ -7,6 +7,7 @@ from pathlib import Path
 from .chunking import chunk_strategy_from_config
 from .config import load_config
 from .embedding import embedding_model_from_config
+from .generation import answer_generator_from_config
 from .ingest import KnowledgeBaseLoader
 from .llm import llm_client_from_config
 from .rerank import reranker_from_config
@@ -122,14 +123,23 @@ def _cmd_query(argv: list[str]) -> None:
         "--expand-queries",
         action="store_true",
         help=(
-            "Use Phase 2.2 LLM query expansion + fusion "
-            "(see query_expansion in config)"
+            "Use Phase 2.2 LLM query expansion + fusion (see query_expansion in config)"
         ),
     )
     parser.add_argument(
         "--no-rerank",
         action="store_true",
         help="Disable Phase 2.3 reranking even if rerank.enabled is true",
+    )
+    parser.add_argument(
+        "--generate",
+        action="store_true",
+        help="Run Phase 2.4 grounded answer generation even if disabled",
+    )
+    parser.add_argument(
+        "--no-generate",
+        action="store_true",
+        help="Skip Phase 2.4 generation even if generation.enabled is true",
     )
     args = parser.parse_args(argv)
     base = args.base_dir.resolve() if args.base_dir else Path.cwd()
@@ -195,10 +205,30 @@ def _cmd_query(argv: list[str]) -> None:
     else:
         hits = hits[:display_top_k]
     for i, h in enumerate(hits, start=1):
-        print(
-            f"{i}\t{h.similarity:.6f}\t{h.doc_id}\t{h.section_path}\t{h.chunk_index}"
-        )
+        print(f"{i}\t{h.similarity:.6f}\t{h.doc_id}\t{h.section_path}\t{h.chunk_index}")
         print(h.text[:500] + ("…" if len(h.text) > 500 else ""))
+
+    gen_cfg = cfg.generation
+    generate_on = (
+        bool(gen_cfg.get("enabled")) or args.generate
+    ) and not args.no_generate
+    if not generate_on:
+        return
+    generator = answer_generator_from_config(gen_cfg, llm=cfg.llm)
+    answer = generator.generate(args.query_text, hits)
+    print("")
+    print("=== ANSWER ===")
+    print(answer.answer)
+    if answer.refused:
+        print("(refused: insufficient evidence in knowledge base)")
+    if answer.citations:
+        print("")
+        print("=== CITATIONS ===")
+        for c in answer.citations:
+            meta = f"{c.doc_id}"
+            if c.section_path:
+                meta += f" | {c.section_path}"
+            print(f"[{c.index}] {meta} (chunk {c.chunk_index})")
 
 
 def main() -> None:

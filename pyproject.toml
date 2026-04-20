@@ -26,6 +26,7 @@ packages = [
     "snow_sports_rag.chunking",
     "snow_sports_rag.config",
     "snow_sports_rag.embedding",
+    "snow_sports_rag.generation",
     "snow_sports_rag.ingest",
     "snow_sports_rag.llm",
     "snow_sports_rag.rerank",

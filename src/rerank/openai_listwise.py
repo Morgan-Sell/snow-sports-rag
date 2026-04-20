@@ -32,7 +32,7 @@ def _build_prompt(query: str, hits: list[RetrievalHit]) -> str:
     """
     lines = [
         "Rank these passages by relevance to the query.",
-        "Return ONLY JSON: {\"ranked_indices\": [<int>, ...]} — a permutation "
+        'Return ONLY JSON: {"ranked_indices": [<int>, ...]} — a permutation '
         "of all indices 0..n-1 from most to least relevant.",
         "",
         f"Query: {query.strip()}",

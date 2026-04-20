@@ -33,9 +33,7 @@ def _doc(
 
 def test_markdown_header_splits_on_h2_and_subwindows() -> None:
     raw = (
-        "# Title\n\nIntro line\n\n## Section A\n\n"
-        + ("x" * 120)
-        + "\n\n## B\n\nDone\n"
+        "# Title\n\nIntro line\n\n## Section A\n\n" + ("x" * 120) + "\n\n## B\n\nDone\n"
     )
     strat = MarkdownHeaderChunkStrategy(
         chunk_size=40,

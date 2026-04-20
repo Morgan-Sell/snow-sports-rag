@@ -69,6 +69,30 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "fusion": "max_score",
         "rrf_k": 60,
     },
+    "generation": {
+        "enabled": False,
+        "backend": "openai",
+        "temperature": 0.1,
+        "max_tokens": 1024,
+        "max_chars_per_hit": 1200,
+        "include_section_path": True,
+        "refusal_message": ("I don't know based on the provided knowledge base."),
+        "system_prompt": None,
+        "openai_model": None,
+        "openai_base_url": None,
+        "openai_api_key": None,
+        "openai_api_key_env": None,
+        "openai_timeout_s": None,
+        "anthropic_model": "claude-3-5-sonnet-20241022",
+        "anthropic_api_key": None,
+        "anthropic_api_key_env": "ANTHROPIC_API_KEY",
+        "anthropic_timeout_s": 120.0,
+        "hf_model": "Qwen/Qwen2.5-3B-Instruct",
+        "hf_device": None,
+        "hf_dtype": None,
+        "hf_max_new_tokens": None,
+        "hf_do_sample": None,
+    },
     "logging": {"level": "INFO"},
 }
 
@@ -95,6 +119,8 @@ class AppConfig:
         LLM provider and generation parameters.
     query_expansion : Mapping[str, Any]
         Phase 2.2 multi-query expansion and fusion options.
+    generation : Mapping[str, Any]
+        Phase 2.4 grounded answer generation (backend, prompt, model ids).
     logging : Mapping[str, Any]
         Log level and related settings.
     """
@@ -107,6 +133,7 @@ class AppConfig:
     rerank: Mapping[str, Any]
     llm: Mapping[str, Any]
     query_expansion: Mapping[str, Any]
+    generation: Mapping[str, Any]
     logging: Mapping[str, Any]
 
 
@@ -217,5 +244,6 @@ def load_config(
         rerank=merged["rerank"],
         llm=merged["llm"],
         query_expansion=merged["query_expansion"],
+        generation=merged["generation"],
         logging=merged["logging"],
     )

@@ -29,6 +29,11 @@ def test_load_config_merges_defaults(tmp_path: Path) -> None:
     assert cfg.query_expansion["fusion"] == "max_score"
     assert cfg.rerank["top_n_in"] == 30
     assert cfg.rerank["top_k_out"] == 5
+    assert cfg.generation["enabled"] is False
+    assert cfg.generation["backend"] == "openai"
+    assert cfg.generation["max_chars_per_hit"] == 1200
+    assert cfg.generation["include_section_path"] is True
+    assert "knowledge base" in cfg.generation["refusal_message"]
 
 
 def test_env_overrides_knowledge_base_path(

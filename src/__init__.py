@@ -12,6 +12,16 @@ from .embedding import (
     SentenceTransformerEmbeddingModel,
     embedding_model_from_config,
 )
+from .generation import (
+    AnswerGenerator,
+    AnthropicAnswerGenerator,
+    FakeAnswerGenerator,
+    GeneratedAnswer,
+    HuggingFaceAnswerGenerator,
+    OpenAIAnswerGenerator,
+    SourceCitation,
+    answer_generator_from_config,
+)
 from .ingest import KnowledgeBaseLoader, SourceDocument
 from .retrieval import (
     BaselineRetriever,
@@ -34,16 +44,24 @@ from .vectorstore import (
 )
 
 __all__ = [
+    "AnswerGenerator",
+    "AnthropicAnswerGenerator",
     "AppConfig",
     "BaselineRetriever",
     "Chunk",
     "ChunkStrategy",
     "ChromaVectorStore",
+    "FakeAnswerGenerator",
+    "GeneratedAnswer",
     "HierarchicalRetriever",
+    "HuggingFaceAnswerGenerator",
     "EmbeddingModel",
     "FakeEmbeddingModel",
     "IndexBuilder",
     "KnowledgeBaseLoader",
+    "OpenAIAnswerGenerator",
+    "SourceCitation",
+    "answer_generator_from_config",
     "chroma_l2_l1_stores_from_config",
     "l1_summary_text",
     "RetrievalHit",
