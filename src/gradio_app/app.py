@@ -34,7 +34,7 @@ from .theme import make_alpine_theme
 
 __all__ = ["build_demo", "launch", "_auto_index_if_empty"]
 
-__doc__ = """Gradio Blocks app for the Snow Sports RAG system.
+__doc__ = """Gradio Blocks app for the Trailhead system.
 
 Three layout layers:
 
@@ -156,7 +156,7 @@ def build_demo(
     theme = make_alpine_theme()
 
     demo_kwargs: dict[str, Any] = {
-        "title": "Snow Sports RAG",
+        "title": "Trailhead",
         "fill_height": True,
     }
     with gr.Blocks(**demo_kwargs) as demo:
@@ -408,7 +408,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         prog="snow-sports-rag-ui",
-        description="Launch the Snow Sports RAG Gradio UI (Phase 3).",
+        description="Launch the Trailhead Gradio UI (Phase 3).",
     )
     parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--base-dir", type=Path, default=None)

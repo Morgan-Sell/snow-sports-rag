@@ -33,10 +33,9 @@ HEADER_HTML = """
 <div class="alpine-header">
   <span class="alpine-mark" aria-hidden="true">⛰</span>
   <div>
-    <div class="alpine-title">Snow Sports RAG</div>
+    <div class="alpine-title">Trailhead</div>
     <div class="alpine-subtitle">
-      Ask a question about the knowledge base. Answers are grounded in
-      retrieved sources; the assistant will refuse when evidence is missing.
+      Your starting point for trusted snow sports answers.
     </div>
   </div>
 </div>
@@ -67,7 +66,7 @@ EXAMPLE_QUESTIONS: tuple[str, ...] = (
 HERO_HTML = (
     '<div class="alpine-hero">'
     '  <div class="alpine-hero-mark" aria-hidden="true">❄</div>'
-    '  <div class="alpine-hero-title">Ask the Snow Sports knowledge base</div>'
+    '  <div class="alpine-hero-title">Welcome to Trailhead</div>'
     '  <div class="alpine-hero-sub">'
     "    Answers are grounded in retrieved sources. Try one of the example "
     "    questions below, or type your own."
