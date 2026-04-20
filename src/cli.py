@@ -4,6 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from dotenv import find_dotenv, load_dotenv
+
 from .chunking import chunk_strategy_from_config
 from .config import load_config
 from .embedding import embedding_model_from_config
@@ -231,8 +233,22 @@ def _cmd_query(argv: list[str]) -> None:
             print(f"[{c.index}] {meta} (chunk {c.chunk_index})")
 
 
+def _load_env_file() -> None:
+    """Populate ``os.environ`` from a ``.env`` file if one is present.
+
+    Uses :func:`dotenv.find_dotenv` to walk up from the current working
+    directory so the CLI works from subfolders of the project. Existing
+    environment variables are NOT overwritten (``override=False``), so
+    secrets exported in the shell always take precedence over the file.
+    """
+    path = find_dotenv(usecwd=True)
+    if path:
+        load_dotenv(path, override=False)
+
+
 def main() -> None:
     """CLI entry: ``ingest`` (default), ``index``, or ``query``."""
+    _load_env_file()
     argv = sys.argv[1:]
     if argv and argv[0] == "index":
         _cmd_index(argv[1:])

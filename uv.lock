@@ -2257,6 +2257,7 @@ source = { editable = "." }
 dependencies = [
     { name = "chromadb" },
     { name = "numpy" },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "sentence-transformers" },
 ]
@@ -2271,6 +2272,7 @@ dev = [
 requires-dist = [
     { name = "chromadb", specifier = ">=1.5.7" },
     { name = "numpy", specifier = ">=1.26" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "sentence-transformers", specifier = ">=5.0" },
 ]
