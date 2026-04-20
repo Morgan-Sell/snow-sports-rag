@@ -218,6 +218,22 @@ ALPINE_CSS = """
 }
 .alpine-banner-warn .alpine-banner-title { color: #1F4A33; }
 .alpine-banner-warn .alpine-banner-body { color: var(--alpine-slate-2); }
+.alpine-banner-info {
+  background: #EEF4F8;
+  border-color: #CFDDE7;
+  color: var(--alpine-deep);
+}
+.alpine-banner-info .alpine-banner-title { color: var(--alpine-deep); }
+.alpine-banner-info .alpine-banner-body { color: var(--alpine-slate-2); }
+.alpine-banner-info code {
+  background: #FFFFFF;
+  border: 1px solid var(--alpine-ice);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--alpine-slate-2);
+}
 
 /* ------- Empty-state hero ------- */
 .alpine-hero {

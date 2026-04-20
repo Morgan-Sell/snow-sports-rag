@@ -128,6 +128,11 @@ class PipelineResult:
         Correlation id for JSONL trace + feedback records.
     config_hash : str
         Short hash of the effective configuration.
+    index_empty : bool
+        ``True`` when the underlying vector store has zero rows, so the
+        pipeline short-circuited and ``cards`` is guaranteed empty. The UI
+        uses this to show a targeted "run the index command" banner instead
+        of the generic "no matching sources" message.
     """
 
     query: str
@@ -136,3 +141,4 @@ class PipelineResult:
     trace: PipelineTrace
     trace_id: str
     config_hash: str
+    index_empty: bool = False

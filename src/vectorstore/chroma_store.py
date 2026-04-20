@@ -95,6 +95,18 @@ class ChromaVectorStore:
         """
         return self._collection_name
 
+    def count(self) -> int:
+        """Return the number of rows currently in the backing collection.
+
+        Returns
+        -------
+        int
+            Result of ``chromadb.Collection.count()``. ``0`` means the
+            collection exists but has no vectors yet (a freshly created
+            persist directory is the common cause).
+        """
+        return int(self._collection.count())
+
     def reset(self) -> None:
         """Drop and recreate the backing collection (full index wipe for rebuilds).
 

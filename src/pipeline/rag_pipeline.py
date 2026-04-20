@@ -131,6 +131,7 @@ class RAGPipeline:
         self._embedder: Any | None = None
         self._l2_store: Any | None = None
         self._l1_store: Any | None = None
+        self._index_empty: bool | None = None
 
     @property
     def config_hash(self) -> str:
@@ -142,6 +143,21 @@ class RAGPipeline:
             Same value as :func:`compute_config_hash(cfg)` from construction.
         """
         return self._config_hash
+
+    @property
+    def index_empty(self) -> bool:
+        """Whether the backing vector stores are empty (eagerly loads them).
+
+        Returns
+        -------
+        bool
+            ``True`` when either the L2 chunk store or the L1 summary store
+            has zero rows. Triggers :meth:`_ensure_loaded` on first access
+            so callers (for example :func:`build_demo` at startup) can
+            display a targeted "run the index command" banner.
+        """
+        self._ensure_loaded()
+        return bool(self._index_empty)
 
     @property
     def cfg(self) -> AppConfig:
@@ -168,6 +184,13 @@ class RAGPipeline:
             l2, l1 = chroma_l2_l1_stores_from_config(self._cfg.vector_store)
             self._l2_store = l2
             self._l1_store = l1
+        if self._index_empty is None:
+            try:
+                self._index_empty = (
+                    self._l2_store.count() == 0 or self._l1_store.count() == 0
+                )
+            except Exception:
+                self._index_empty = False
 
     def _retrieve_variant(
         self,
@@ -370,6 +393,21 @@ class RAGPipeline:
             )
 
         self._ensure_loaded()
+
+        if self._index_empty:
+            total_ms = (time.perf_counter() - t_total) * 1000.0
+            return PipelineResult(
+                query=q,
+                cards=[],
+                answer=None,
+                trace=PipelineTrace(
+                    query=q,
+                    latency=StageLatency(total_ms=round(total_ms, 2)),
+                ),
+                trace_id=new_trace_id(),
+                config_hash=self._config_hash,
+                index_empty=True,
+            )
 
         t0 = time.perf_counter()
         expansions: list[str] = []

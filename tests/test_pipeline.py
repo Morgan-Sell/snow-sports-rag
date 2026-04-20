@@ -465,6 +465,101 @@ def test_render_settings_readonly_shows_config_hash(indexed_cfg) -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# empty-index short-circuit + --auto-index
+# ---------------------------------------------------------------------------
+
+
+def _empty_cfg(tmp_path: Path):
+    """Return an AppConfig whose Chroma persist dir has zero rows in it."""
+    cfg_path = _write_config(tmp_path)
+    return load_config(cfg_path, base_dir=tmp_path)
+
+
+def test_chroma_vector_store_count_zero_on_fresh_dir(tmp_path: Path) -> None:
+    store = ChromaVectorStore(tmp_path / "db", "snow_sports_kb")
+    assert store.count() == 0
+
+
+def test_pipeline_short_circuits_when_index_empty(tmp_path: Path) -> None:
+    cfg = _empty_cfg(tmp_path)
+    pipe = RAGPipeline(cfg)
+    assert pipe.index_empty is True
+
+    result = pipe.run("anything at all")
+    assert result.index_empty is True
+    assert result.cards == []
+    assert result.answer is None
+    assert result.trace.latency.total_ms >= 0.0
+
+
+def test_render_evidence_banner_index_empty_takes_priority(tmp_path: Path) -> None:
+    from snow_sports_rag.gradio_app.components import (
+        render_empty_index_banner,
+        render_evidence_banner,
+    )
+    from snow_sports_rag.pipeline.models import PipelineResult, PipelineTrace
+
+    res = PipelineResult(
+        query="anything",
+        cards=[],
+        answer=None,
+        trace=PipelineTrace(query="anything"),
+        trace_id="t",
+        config_hash="h",
+        index_empty=True,
+    )
+    html = render_evidence_banner(res)
+    assert html == render_empty_index_banner()
+    assert "not indexed yet" in html
+    assert "alpine-banner-info" in html
+    assert "snow_sports_rag index" in html
+    assert "--auto-index" in html
+
+
+def test_auto_index_if_empty_builds_then_becomes_noop(tmp_path: Path) -> None:
+    from snow_sports_rag.gradio_app.app import _auto_index_if_empty
+    from snow_sports_rag.ingest.loader import KnowledgeBaseLoader
+
+    cfg = _empty_cfg(tmp_path)
+    kb = Path(cfg.knowledge_base_path)
+    (kb / "athletes").mkdir(parents=True, exist_ok=True)
+    (kb / "athletes" / "annie.md").write_text(
+        "# Annie\n\n## Bio\n\n"
+        + ("alpine skier " * 30)
+        + "\n\n## Career\n\n"
+        + ("mountain ridge " * 30)
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert KnowledgeBaseLoader(cfg).load_all(), "sanity: fixture doc must load"
+
+    logs: list[str] = []
+    first = _auto_index_if_empty(cfg, log=logs.append)
+    assert first["action"] == "indexed"
+    assert first["chunks"] > 0
+    assert first["docs"] >= 1
+
+    pipe = RAGPipeline(cfg)
+    assert pipe.index_empty is False
+
+    second = _auto_index_if_empty(cfg, log=logs.append)
+    assert second["action"] == "skipped"
+    assert second["l2_before"] > 0
+    assert second["l1_before"] > 0
+
+
+def test_launch_parse_args_auto_index_flag(tmp_path: Path) -> None:
+    from snow_sports_rag.gradio_app.app import _parse_args
+
+    ns_off = _parse_args([])
+    assert ns_off.auto_index is False
+
+    ns_on = _parse_args(["--auto-index"])
+    assert ns_on.auto_index is True
+
+
 def test_build_demo_constructs_blocks(indexed_cfg) -> None:
     pytest.importorskip("gradio")
     from snow_sports_rag.gradio_app import build_demo

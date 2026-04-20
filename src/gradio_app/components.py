@@ -8,12 +8,14 @@ from ..pipeline.presets import PRESETS
 __all__ = [
     "DEFAULT_LOW_EVIDENCE_THRESHOLD",
     "EMPTY_EVIDENCE_HTML",
+    "EMPTY_INDEX_BANNER_HTML",
     "EMPTY_SOURCES_HTML",
     "EXAMPLE_QUESTIONS",
     "HERO_HTML",
     "HEADER_HTML",
     "build_card_tooltip",
     "render_debug_panel",
+    "render_empty_index_banner",
     "render_evidence_banner",
     "render_preset_caption",
     "render_settings_readonly",
@@ -161,6 +163,41 @@ def render_source_cards(
     return "\n".join(parts)
 
 
+def render_empty_index_banner() -> str:
+    """Return the glacier-blue "knowledge base is not indexed" banner.
+
+    Called both at UI startup (via :func:`build_demo`) and per-query (via
+    :func:`render_evidence_banner`) so the message is identical in both
+    places. The command strings below intentionally match the ones in the
+    project ``README`` so copy/paste works.
+
+    Returns
+    -------
+    str
+        HTML fragment using the ``alpine-banner alpine-banner-info``
+        classes defined in :mod:`snow_sports_rag.gradio_app.css`.
+    """
+    return (
+        '<div class="alpine-banner alpine-banner-info" role="status">'
+        '  <span class="alpine-banner-icon" aria-hidden="true">❄</span>'
+        "  <div>"
+        '    <div class="alpine-banner-title">'
+        "      Knowledge base is not indexed yet"
+        "    </div>"
+        '    <div class="alpine-banner-body">'
+        "      Run <code>uv run python -m snow_sports_rag index</code> from the"
+        "      project root, then reload this page. To auto-build on launch"
+        "      instead, start the UI with"
+        "      <code>uv run snow-sports-rag-ui --auto-index</code>."
+        "    </div>"
+        "  </div>"
+        "</div>"
+    )
+
+
+EMPTY_INDEX_BANNER_HTML = render_empty_index_banner()
+
+
 def render_evidence_banner(
     result: PipelineResult,
     *,
@@ -190,6 +227,9 @@ def render_evidence_banner(
     """
     cards = result.cards
     top_sim = max((c.similarity for c in cards), default=None)
+
+    if getattr(result, "index_empty", False):
+        return render_empty_index_banner()
 
     if not cards:
         title = "No matching sources"

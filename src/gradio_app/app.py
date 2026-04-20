@@ -8,11 +8,17 @@ from typing import Any
 
 from dotenv import find_dotenv, load_dotenv
 
+from ..chunking import chunk_strategy_from_config
 from ..config import AppConfig, load_config
+from ..embedding import embedding_model_from_config
+from ..ingest import KnowledgeBaseLoader
 from ..pipeline import PRESETS, RAGPipeline, TraceLogger
+from ..retrieval import IndexBuilder
+from ..vectorstore import chroma_l2_l1_stores_from_config
 from .components import (
     DEFAULT_LOW_EVIDENCE_THRESHOLD,
     EMPTY_EVIDENCE_HTML,
+    EMPTY_INDEX_BANNER_HTML,
     EMPTY_SOURCES_HTML,
     EXAMPLE_QUESTIONS,
     HEADER_HTML,
@@ -26,7 +32,7 @@ from .components import (
 from .css import ALPINE_CSS
 from .theme import make_alpine_theme
 
-__all__ = ["build_demo", "launch"]
+__all__ = ["build_demo", "launch", "_auto_index_if_empty"]
 
 __doc__ = """Gradio Blocks app for the Snow Sports RAG system.
 
@@ -40,6 +46,60 @@ Three layout layers:
 
 
 _DEFAULT_TRACE_PATH = Path(".rag_traces/traces.jsonl")
+
+
+def _auto_index_if_empty(
+    cfg: AppConfig,
+    *,
+    log: Any = print,
+) -> dict[str, int]:
+    """Build the L1/L2 indexes from ``cfg`` when either collection is empty.
+
+    This is the implementation behind ``snow-sports-rag-ui --auto-index``.
+    It reuses the same helpers as the ``snow_sports_rag index`` CLI command
+    so the resulting on-disk layout is identical.
+
+    Parameters
+    ----------
+    cfg : AppConfig
+        Parsed application configuration.
+    log : callable, optional
+        Called with a single string for progress messages. Defaults to
+        :func:`print`; tests pass a no-op.
+
+    Returns
+    -------
+    dict
+        Always includes an ``action`` key (``"skipped"`` when both stores
+        already have rows, or ``"indexed"`` when a build ran). When a build
+        runs, also includes ``"chunks"``, ``"docs"``, ``"l2_before"``, and
+        ``"l1_before"`` for diagnostics and tests.
+    """
+    l2_store, l1_store = chroma_l2_l1_stores_from_config(cfg.vector_store)
+    l2_before = l2_store.count()
+    l1_before = l1_store.count()
+    if l2_before > 0 and l1_before > 0:
+        return {"action": "skipped", "l2_before": l2_before, "l1_before": l1_before}
+
+    log(
+        f"[auto-index] collections empty (l2={l2_before}, l1={l1_before}); "
+        "building index from knowledge base…"
+    )
+    loader = KnowledgeBaseLoader(cfg)
+    docs = loader.load_all()
+    strategy = chunk_strategy_from_config(cfg.chunking)
+    embedder = embedding_model_from_config(cfg.embedding)
+    builder = IndexBuilder(strategy, embedder, l2_store, l1_store=l1_store)
+    n_chunks = builder.build(docs)
+    n_docs = len(docs)
+    log(f"[auto-index] indexed {n_chunks} L2 chunks and {n_docs} L1 summaries")
+    return {
+        "action": "indexed",
+        "chunks": int(n_chunks),
+        "docs": int(n_docs),
+        "l2_before": l2_before,
+        "l1_before": l1_before,
+    }
 
 
 def _load_env_file() -> None:
@@ -107,7 +167,13 @@ def build_demo(
         last_trace_id = gr.State("")
         last_config_hash = gr.State(pipeline.config_hash)
 
-        evidence_banner = gr.HTML(value=EMPTY_EVIDENCE_HTML)
+        initial_banner = EMPTY_EVIDENCE_HTML
+        try:
+            if pipeline.index_empty:
+                initial_banner = EMPTY_INDEX_BANNER_HTML
+        except Exception:
+            initial_banner = EMPTY_EVIDENCE_HTML
+        evidence_banner = gr.HTML(value=initial_banner)
 
         with gr.Row(equal_height=False):
             with gr.Column(scale=3, min_width=420):
@@ -357,6 +423,15 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         default=int(os.environ.get("GRADIO_SERVER_PORT", "7860")),
     )
     parser.add_argument("--share", action="store_true")
+    parser.add_argument(
+        "--auto-index",
+        action="store_true",
+        help=(
+            "Build the vector index from the knowledge base at startup when "
+            "either Chroma collection is empty. No-op when an index already "
+            "exists. Off by default so launches stay fast and reproducible."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -377,6 +452,11 @@ def launch(argv: list[str] | None = None) -> None:
     elif not cfg_path.is_absolute():
         cfg_path = (base / cfg_path).resolve()
     cfg = load_config(cfg_path, base_dir=base)
+    if getattr(args, "auto_index", False):
+        try:
+            _auto_index_if_empty(cfg)
+        except Exception as exc:
+            print(f"[auto-index] failed: {exc}", file=sys.stderr)
     demo = build_demo(cfg)
     theme = getattr(demo, "_alpine_theme", None)
     css = getattr(demo, "_alpine_css", None)

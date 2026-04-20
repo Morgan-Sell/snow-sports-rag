@@ -50,6 +50,18 @@ class VectorStore(Protocol):
         """
         ...
 
+    def count(self) -> int:
+        """Return the number of rows currently stored in this index.
+
+        Returns
+        -------
+        int
+            Non-negative row count. Zero indicates the collection exists but
+            has not yet been populated (the common "forgot to run ``index``"
+            state for a fresh checkout).
+        """
+        ...
+
     def query(
         self,
         *,
