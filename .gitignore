@@ -230,3 +230,6 @@ data/
 
 # Trace logs emitted by the Gradio UI
 .rag_traces/
+
+# Phase 4.2 sweep outputs (metrics.json, per-cell Chroma dirs)
+evaluation/runs/
