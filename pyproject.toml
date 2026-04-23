@@ -17,6 +17,7 @@ dependencies = [
 snow-sports-rag = "snow_sports_rag.cli:main"
 snow-sports-rag-ui = "snow_sports_rag.gradio_app.app:launch"
 snow-sports-rag-sweep = "snow_sports_rag.evaluation.sweep:sweep_main"
+snow-sports-rag-trace-analyze = "snow_sports_rag.evaluation.trace_analyze:trace_analyze_main"
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]

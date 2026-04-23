@@ -1,0 +1,23 @@
+# Local / server: `docker compose up --build`
+# Mounts persist Chroma index, traces, and Hugging Face model cache.
+
+services:
+  ui:
+    build: .
+    ports:
+      - "7860:7860"
+    # Optional: add env_file: [".env"] locally if you keep secrets in .env
+    environment:
+      GRADIO_SERVER_NAME: "0.0.0.0"
+      GRADIO_SERVER_PORT: "7860"
+    working_dir: /app
+    volumes:
+      - ./knowledge-base:/app/knowledge-base:ro
+      - rag_index:/app/.rag_index
+      - rag_traces:/app/.rag_traces
+      - hf_cache:/data/hf
+
+volumes:
+  rag_index: {}
+  rag_traces: {}
+  hf_cache: {}
