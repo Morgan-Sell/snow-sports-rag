@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from snow_sports_rag.evaluation import (
     default_gold_qa_path,
-    load_gold_qa,
     GoldItem,
+    load_gold_qa,
 )
 
 
