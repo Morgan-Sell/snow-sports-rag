@@ -94,6 +94,8 @@ class PipelineTrace:
         Union of L1 doc_ids across variants, in first-seen order.
     l2_pre_rerank : list of RetrievalHit
         Fused L2 candidates before the reranker is applied.
+    document_expansion_added : list of RetrievalHit
+        Extra same-document chunks added after fused retrieval.
     reranked : list of RetrievalHit
         Output of the reranker; identical to ``l2_pre_rerank[:top_k_out]``
         when reranking is disabled.
@@ -106,6 +108,7 @@ class PipelineTrace:
     variants: list[str] = field(default_factory=list)
     l1_shortlist: list[str] = field(default_factory=list)
     l2_pre_rerank: list[RetrievalHit] = field(default_factory=list)
+    document_expansion_added: list[RetrievalHit] = field(default_factory=list)
     reranked: list[RetrievalHit] = field(default_factory=list)
     latency: StageLatency = field(default_factory=StageLatency)
 

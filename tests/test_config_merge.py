@@ -59,6 +59,7 @@ def test_merge_app_config_unknown_section_raises() -> None:
         rerank={},
         llm={},
         query_expansion={},
+        document_expansion={},
         generation={},
         logging={},
     )

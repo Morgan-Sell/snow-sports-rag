@@ -60,7 +60,7 @@ def compute_config_hash(cfg: Any) -> str:
 
     Only sections that materially change retrieval / generation behaviour are
     included (chunking, embedding, vector_store, retrieval, rerank,
-    query_expansion, generation). Secrets are stripped.
+    query_expansion, document_expansion, generation). Secrets are stripped.
 
     Parameters
     ----------
@@ -88,6 +88,7 @@ def compute_config_hash(cfg: Any) -> str:
             "retrieval",
             "rerank",
             "query_expansion",
+            "document_expansion",
             "generation",
         )
     }
@@ -245,6 +246,9 @@ class TraceLogger:
             "variants": list(tr.variants),
             "l1_shortlist": list(tr.l1_shortlist),
             "l2_pre_rerank": [_hit_to_dict(h) for h in tr.l2_pre_rerank],
+            "document_expansion_added": [
+                _hit_to_dict(h) for h in tr.document_expansion_added
+            ],
             "reranked": [_hit_to_dict(h) for h in tr.reranked],
             "final_sources": [
                 {

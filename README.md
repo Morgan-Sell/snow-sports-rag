@@ -1,7 +1,6 @@
 # Trailhead
 Trailhead is a snow-sports RAG app that answers questions over a richly linked world of athletes, resorts, competitions, and results. It pairs grounded retrieval, cited answers, evaluation tooling, and a clean UI, with just enough mountain energy to make the whole thing more fun than your average AI demo.
 
-`Hierarchical retrieval` `Cited answers` `RAG sweeps` `Trace analysis` `Dockerized UI`
 
 <!-- Best screenshot placement: insert a Trailhead UI screenshot here, directly under the intro and before the feature sections.
 Example:

@@ -69,6 +69,21 @@ _DEFAULT_SUBSECTIONS: dict[str, Any] = {
         "fusion": "max_score",
         "rrf_k": 60,
     },
+    "document_expansion": {
+        "enabled": True,
+        "modes": ["neighbors", "same_section", "anchor_sections"],
+        "window": 1,
+        "max_seed_hits": 8,
+        "max_extra_chunks_per_doc": 3,
+        "max_total_extra_chunks": 8,
+        "expansion_score_penalty": 0.05,
+        "anchor_sections_by_entity_type": {
+            "athletes": ["Summary"],
+            "resorts": ["Summary"],
+            "circuits": ["Summary"],
+            "competitions": ["Summary"],
+        },
+    },
     "generation": {
         "enabled": False,
         "backend": "openai",
@@ -119,6 +134,8 @@ class AppConfig:
         LLM provider and generation parameters.
     query_expansion : Mapping[str, Any]
         Phase 2.2 multi-query expansion and fusion options.
+    document_expansion : Mapping[str, Any]
+        Post-retrieval same-document expansion options.
     generation : Mapping[str, Any]
         Phase 2.4 grounded answer generation (backend, prompt, model ids).
     logging : Mapping[str, Any]
@@ -133,6 +150,7 @@ class AppConfig:
     rerank: Mapping[str, Any]
     llm: Mapping[str, Any]
     query_expansion: Mapping[str, Any]
+    document_expansion: Mapping[str, Any]
     generation: Mapping[str, Any]
     logging: Mapping[str, Any]
 
@@ -244,6 +262,7 @@ def load_config(
         rerank=merged["rerank"],
         llm=merged["llm"],
         query_expansion=merged["query_expansion"],
+        document_expansion=merged["document_expansion"],
         generation=merged["generation"],
         logging=merged["logging"],
     )
