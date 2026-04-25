@@ -255,3 +255,35 @@ class ChromaVectorStore:
                 )
             )
         return VectorQueryResult(hits=hits)
+
+    def get_by_doc_id(self, doc_id: str) -> list[VectorQueryHit]:
+        """Return all chunks whose metadata ``doc_id`` matches ``doc_id``.
+
+        Direct Chroma reads do not provide query distances, so returned hits use
+        ``distance=float("inf")``. Callers that inject these rows into a ranked
+        list should assign expansion scores explicitly.
+        """
+        did = str(doc_id).strip()
+        if not did:
+            return []
+        raw = self._collection.get(
+            where={"doc_id": did},
+            include=["documents", "metadatas"],
+        )
+        ids_l = raw.get("ids") or []
+        docs_l = raw.get("documents") or []
+        metas_l = raw.get("metadatas") or []
+        hits: list[VectorQueryHit] = []
+        for i, eid in enumerate(ids_l):
+            doc = docs_l[i] if i < len(docs_l) and docs_l[i] is not None else ""
+            meta = metas_l[i] if i < len(metas_l) and metas_l[i] is not None else {}
+            hits.append(
+                VectorQueryHit(
+                    id=str(eid),
+                    document=str(doc),
+                    distance=float("inf"),
+                    metadata=meta,
+                )
+            )
+        hits.sort(key=lambda h: int(h.metadata.get("chunk_index", 0)))
+        return hits

@@ -354,6 +354,8 @@ def render_debug_panel(trace: PipelineTrace) -> str:
             _render_string_list(trace.l1_shortlist),
             "<h4>L2 candidates (pre-rerank)</h4>",
             _render_hit_table(_rows_from_hits(trace.l2_pre_rerank)),
+            "<h4>Document expansion added</h4>",
+            _render_hit_table(_rows_from_hits(trace.document_expansion_added)),
             "<h4>Reranked / final</h4>",
             _render_hit_table(_rows_from_hits(trace.reranked)),
             "<h4>Latency</h4>",

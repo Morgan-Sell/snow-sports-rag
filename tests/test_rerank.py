@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+
 from snow_sports_rag.rerank import (
     CrossEncoderReranker,
     IdentityReranker,

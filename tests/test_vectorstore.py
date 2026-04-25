@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from snow_sports_rag.chunking.models import Chunk
 from snow_sports_rag.config import load_config
 from snow_sports_rag.embedding import FakeEmbeddingModel
@@ -76,6 +77,43 @@ def test_chroma_query_respects_where_doc_id_in(tmp_path: Path) -> None:
     )
     assert len(out.hits) == 1
     assert out.hits[0].metadata["doc_id"] == "athletes/a.md"
+
+
+def test_chroma_get_by_doc_id_returns_chunks_in_index_order(tmp_path: Path) -> None:
+    store = ChromaVectorStore(tmp_path / "db", "snow_sports_kb")
+    chunks = [
+        Chunk(
+            text="third",
+            doc_id="athletes/a.md",
+            entity_type="athletes",
+            section_path="Career",
+            chunk_index=2,
+        ),
+        Chunk(
+            text="first",
+            doc_id="athletes/a.md",
+            entity_type="athletes",
+            section_path="Summary",
+            chunk_index=0,
+        ),
+        Chunk(
+            text="other",
+            doc_id="athletes/b.md",
+            entity_type="athletes",
+            section_path="Summary",
+            chunk_index=0,
+        ),
+    ]
+    embed = FakeEmbeddingModel(dimension=8, normalize=True)
+    mat = embed.embed_documents([c.text for c in chunks])
+    ids, docs, metas, emb = pack_chunk_upsert(chunks, mat)
+    store.upsert(ids=ids, embeddings=emb, documents=docs, metadatas=metas)
+
+    out = store.get_by_doc_id("athletes/a.md")
+
+    assert [h.metadata["chunk_index"] for h in out] == [0, 2]
+    assert [h.document for h in out] == ["first", "third"]
+    assert store.get_by_doc_id("missing.md") == []
 
 
 def test_chroma_upsert_query_roundtrip(tmp_path: Path) -> None:

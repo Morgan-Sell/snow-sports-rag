@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from snow_sports_rag.config.loader import AppConfig, load_config
 from snow_sports_rag.evaluation.config_merge import (
     flat_overrides_to_nested,
@@ -59,6 +60,7 @@ def test_merge_app_config_unknown_section_raises() -> None:
         rerank={},
         llm={},
         query_expansion={},
+        document_expansion={},
         generation={},
         logging={},
     )

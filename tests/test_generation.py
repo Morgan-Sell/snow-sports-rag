@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+
 from snow_sports_rag.generation import (
     DEFAULT_REFUSAL_MESSAGE,
     DEFAULT_SYSTEM_PROMPT,

@@ -52,6 +52,20 @@ query_expansion:
   fusion: max_score
   rrf_k: 60
 
+document_expansion:
+  enabled: true
+  modes: [neighbors, same_section, anchor_sections]
+  window: 1
+  max_seed_hits: 8
+  max_extra_chunks_per_doc: 3
+  max_total_extra_chunks: 8
+  expansion_score_penalty: 0.05
+  anchor_sections_by_entity_type:
+    athletes: [Summary]
+    resorts: [Summary]
+    circuits: [Summary]
+    competitions: [Summary]
+
 generation:
   # Phase 2.4: grounded answers. When disabled, the CLI prints retrieval rows
   # only and does not call an LLM for synthesis.

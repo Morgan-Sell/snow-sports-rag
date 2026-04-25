@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from snow_sports_rag.llm import FakeLLMClient
 from snow_sports_rag.retrieval import QueryExpander
 from snow_sports_rag.retrieval.models import RetrievalHit

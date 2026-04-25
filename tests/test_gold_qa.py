@@ -7,7 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from snow_sports_rag.evaluation import GoldItem, default_gold_qa_path, load_gold_qa
+from snow_sports_rag.evaluation import (
+    GoldItem,
+    default_gold_qa_path,
+    load_gold_qa,
+)
 
 
 def test_default_gold_file_exists() -> None:

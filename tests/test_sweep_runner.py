@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import yaml
+
 from snow_sports_rag.config.loader import load_config
 from snow_sports_rag.evaluation.gold import load_gold_qa
 from snow_sports_rag.evaluation.sweep import SweepConfig, run_sweep_retrieval

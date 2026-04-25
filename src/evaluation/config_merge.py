@@ -76,6 +76,7 @@ def merge_app_config_overrides(
             "rerank",
             "llm",
             "query_expansion",
+            "document_expansion",
             "generation",
             "logging",
         }
@@ -102,6 +103,7 @@ def merge_app_config_overrides(
         rerank=merge("rerank"),
         llm=merge("llm"),
         query_expansion=merge("query_expansion"),
+        document_expansion=merge("document_expansion"),
         generation=merge("generation"),
         logging=merge("logging"),
     )

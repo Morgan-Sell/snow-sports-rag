@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from snow_sports_rag.chunking import (
     MarkdownHeaderChunkStrategy,
     chunk_strategy_from_config,

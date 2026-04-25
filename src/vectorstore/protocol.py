@@ -5,7 +5,7 @@ from typing import Any, Mapping, Protocol, runtime_checkable
 import numpy as np
 from numpy.typing import NDArray
 
-from .models import VectorQueryResult
+from .models import VectorQueryHit, VectorQueryResult
 
 __all__ = ["VectorStore", "FloatMatrix"]
 
@@ -86,5 +86,21 @@ class VectorStore(Protocol):
         VectorQueryResult
             Ranked hits; distance interpretation depends on index space
             (cosine, L2, inner product).
+        """
+        ...
+
+    def get_by_doc_id(self, doc_id: str) -> list[VectorQueryHit]:
+        """Return all stored chunks for ``doc_id`` in backend order.
+
+        Parameters
+        ----------
+        doc_id : str
+            Knowledge-base relative source document id.
+
+        Returns
+        -------
+        list of VectorQueryHit
+            Matching rows. Backends may not have similarity distances for direct
+            reads; use ``float("inf")`` or another explicit sentinel.
         """
         ...

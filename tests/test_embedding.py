@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+
 from snow_sports_rag.embedding import (
     FakeEmbeddingModel,
     SentenceTransformerEmbeddingModel,

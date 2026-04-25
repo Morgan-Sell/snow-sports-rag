@@ -8,6 +8,7 @@ from ..embedding import embedding_model_from_config
 from ..generation import answer_generator_from_config
 from ..llm import llm_client_from_config
 from ..rerank import reranker_from_config
+from ..retrieval.document_expansion import expand_retrieval_hits
 from ..retrieval.fusion import (
     fuse_retrieval_hits_max_score,
     fuse_retrieval_hits_rrf,
@@ -441,6 +442,15 @@ class RAGPipeline:
         l2_pre_rerank = self._fuse(
             per_variant_hits, top_n_fused=preset_obj.top_n_pre_rerank
         )
+        document_expansion_added: list[RetrievalHit] = []
+        if bool(self._cfg.document_expansion.get("enabled", False)):
+            assert self._l2_store is not None
+            l2_pre_rerank, document_expansion_added, _ = expand_retrieval_hits(
+                l2_pre_rerank,
+                query=q,
+                store=self._l2_store,
+                config=self._cfg.document_expansion,
+            )
         retrieval_ms = (time.perf_counter() - t0) * 1000.0
 
         t0 = time.perf_counter()
@@ -484,6 +494,7 @@ class RAGPipeline:
             variants=list(variants),
             l1_shortlist=list(all_shortlists),
             l2_pre_rerank=list(l2_pre_rerank),
+            document_expansion_added=list(document_expansion_added),
             reranked=list(reranked),
             latency=latency,
         )
