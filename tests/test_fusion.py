@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from snow_sports_rag.retrieval import (
     fuse_retrieval_hits_max_score,
     fuse_retrieval_hits_rrf,

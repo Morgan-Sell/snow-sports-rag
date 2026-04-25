@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import yaml
+
 from snow_sports_rag.config import load_config
 from snow_sports_rag.pipeline import RAGPipeline
 from snow_sports_rag.retrieval.document_expansion import (

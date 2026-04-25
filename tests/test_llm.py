@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from snow_sports_rag.llm import FakeLLMClient, llm_client_from_config
 from snow_sports_rag.llm.openai_compatible import (
     OpenAICompatibleLLMClient,

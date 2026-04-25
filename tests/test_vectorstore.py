@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from snow_sports_rag.chunking.models import Chunk
 from snow_sports_rag.config import load_config
 from snow_sports_rag.embedding import FakeEmbeddingModel

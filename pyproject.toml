@@ -61,3 +61,6 @@ src = ["src", "app", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["snow_sports_rag"]

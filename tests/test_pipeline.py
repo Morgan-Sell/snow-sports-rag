@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from snow_sports_rag.chunking import MarkdownHeaderChunkStrategy
 from snow_sports_rag.config import load_config
 from snow_sports_rag.embedding import FakeEmbeddingModel
